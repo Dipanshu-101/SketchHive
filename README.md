@@ -1,159 +1,150 @@
-# Turborepo starter
+# SketchHive 🎨
 
-This Turborepo starter is maintained by the Turborepo core team.
+A real-time collaborative whiteboard application where multiple users can draw, sketch, and collaborate together in shared rooms.
 
-## Using this example
+> Currently under active development.
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
+## ✨ Features
+
+### Current
+
+* Monorepo architecture using Turborepo
+* Next.js frontend
+* Express backend
+* WebSocket server for real-time communication
+* TypeScript across the stack
+
+### Planned
+
+* Real-time collaborative drawing
+* Multiple rooms/boards
+* User authentication
+* Persistent board storage
+* Cursor presence indicators
+* Shape tools (rectangle, circle, line)
+* Undo / Redo
+* Dark mode
+* Board sharing
+* Export board as image/PDF
+
+---
+
+## 🏗️ Tech Stack
+
+### Frontend
+
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+
+### Backend
+
+* Node.js
+* Express
+
+### Realtime
+
+* WebSockets (`ws`)
+
+### Database
+
+* PostgreSQL
+
+### Monorepo
+
+* Turborepo
+
+---
+
+## 📂 Project Structure
+
+```text
+SketchHive/
+│
+├── apps/
+│   ├── web/            # Next.js frontend
+│   ├── http-backend/   # REST APIs
+│   └── ws-backend/     # WebSocket server
+│
+├── packages/
+│   ├── ui/
+│   ├── eslint-config/
+│   └── typescript-config/
+│
+└── turbo.json
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## 🚀 Getting Started
 
-### Apps and Packages
+### Clone the Repository
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+git clone <repository-url>
+cd SketchHive
 ```
 
-Without global `turbo`, use your package manager:
+### Install Dependencies
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+```bash
+pnpm install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Run Development Environment
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```bash
+pnpm run dev
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## 📌 Development Roadmap
 
-### Develop
+### Phase 1
 
-To develop all apps and packages, run the following command:
+* [x] Turborepo setup
+* [x] Next.js setup
+* [x] Express server setup
+* [x] WebSocket server setup
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### Phase 2
 
-```sh
-cd my-turborepo
-turbo dev
-```
+* [ ] Canvas implementation
+* [ ] Drawing tools
+* [ ] Real-time synchronization
 
-Without global `turbo`, use your package manager:
+### Phase 3
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+* [ ] Authentication
+* [ ] Database integration
+* [ ] Board persistence
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Phase 4
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+* [ ] Sharing and collaboration features
+* [ ] Performance optimizations
+* [ ] Production deployment
 
-```sh
-turbo dev --filter=web
-```
+---
 
-Without global `turbo`:
+## 🎯 Project Goal
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+The goal of SketchHive is to understand and implement modern full-stack development concepts including:
 
-### Remote Caching
+* Monorepos
+* WebSockets
+* Real-time systems
+* Authentication
+* Database management
+* Scalable architecture
+* Deployment workflows
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+---
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## 📜 License
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+MIT License
