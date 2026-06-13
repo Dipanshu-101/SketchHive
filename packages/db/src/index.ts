@@ -1,5 +1,22 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-export const prismaClient = new PrismaClient();
+
+let prismaClient: PrismaClient | null = null;
+
+export function getPrismaClient() {
+  if (!prismaClient) {
+    prismaClient = new PrismaClient();
+  }
+  return prismaClient;
+}
+
+// Also export as a getter for backward compatibility
+export const prismaClientLazy = new Proxy({} as any, {
+  get: (target, prop) => {
+    const client = getPrismaClient();
+    return (client as any)[prop];
+  },
+});
 
 /*
 MONOREPO PACKAGE REVISION NOTES
