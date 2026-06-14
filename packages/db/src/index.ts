@@ -1,102 +1,54 @@
-import "dotenv/config";
+import path from "path";
+import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+console.log("PrismaClient =", PrismaClient);
+
+const envPath = path.resolve(__dirname, "../.env");
+console.log("[db package] loading .env from", envPath);
+
+dotenv.config({ path: envPath });
+
+const databaseUrl = process.env.DATABASE_URL;
+
+console.log(
+  "[db package] DATABASE_URL present:",
+  Boolean(databaseUrl)
+);
+
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL is required for Prisma client initialization"
+  );
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const adapter = new PrismaPg(pool);
 
 let prismaClient: PrismaClient | null = null;
 
 export function getPrismaClient() {
   if (!prismaClient) {
-    prismaClient = new PrismaClient();
+    console.log("[db package] initializing PrismaClient");
+
+    prismaClient = new PrismaClient({
+      adapter,
+    });
+
+    console.log("[db package] PrismaClient initialized successfully");
   }
+
   return prismaClient;
 }
 
-// Also export as a getter for backward compatibility
 export const prismaClientLazy = new Proxy({} as any, {
-  get: (target, prop) => {
+  get: (_target, prop) => {
     const client = getPrismaClient();
     return (client as any)[prop];
   },
 });
-
-/*
-MONOREPO PACKAGE REVISION NOTES
-
-1. Packages are created to store reusable code that may be needed by
-   multiple apps (frontend, backend, websocket server, etc.).
-
-   Examples:
-
-   * Database client (Prisma)
-   * Shared types/interfaces
-   * Utility functions
-   * Authentication helpers
-   * UI components
-   * Common configs
-
-2. Every package is like a mini npm package.
-
-   Example:
-   packages/db
-   packages/backend-common
-   packages/ui
-
-3. Usually create a package using:
-
-   npm init -y
-
-4. Every package can have its own tsconfig.json.
-
-   To avoid repeating TypeScript settings, the package usually extends
-   a shared config:
-
-   {
-   "extends": "@repo/typescript-config/base.json"
-   }
-
-5. The shared tsconfig package is added as a devDependency because it
-   is only needed while developing/building.
-
-6. Code is exported from files (usually src/index.ts).
-
-   Example:
-
-   export const prisma = new PrismaClient();
-
-7. package.json exports define which files are publicly accessible
-   outside the package.
-
-   Example:
-
-   {
-   "exports": {
-   ".": "./src/index.ts",
-   "./config": "./src/config.ts"
-   }
-   }
-
-8. Other apps import using the package name instead of relative paths.
-
-   Good:
-   import { prisma } from "@repo/db";
-
-   Avoid:
-   import { prisma } from "../../../packages/db/src/index";
-
-9. Import Resolution:
-
-   import ... from "./file"
-   → Relative file path
-
-   import ... from "@repo/db"
-   → Workspace package
-
-   import ... from "@prisma/client"
-   → Package inside node_modules
-
-10. Goal of packages:
-
-    * Reuse code
-    * Avoid duplication
-    * Keep apps independent
-    * Share common functionality across the monorepo
-      */

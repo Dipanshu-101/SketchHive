@@ -9,6 +9,14 @@ const app = express();
 
 app.use(express.json());
 
+app.get("/test-db", async (req, res) => {
+    const users = await getPrismaClient().user.findMany();
+
+    console.log(users);
+
+    res.json(users);
+});
+
 app.post("/signup", async (req, res) => {
     try {
         const data = CreateUserSchema.safeParse(req.body);
@@ -33,15 +41,22 @@ app.post("/signup", async (req, res) => {
                 name: data.data.username
             }
         });
-
+        console.log("control reached here");
         res.status(201).json({
             userId: user.id,
             message: "User created successfully"
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal server error" });
+    }catch (error) {
+    console.error("========== SIGNUP ERROR ==========");
+    console.error(error);
+
+    if (error instanceof Error) {
+        console.error("MESSAGE:", error.message);
+        console.error("STACK:", error.stack);
     }
+
+    res.status(500).json({ error: "Internal server error" });
+}
 });
 
 app.post("/signin", async (req, res) => {
