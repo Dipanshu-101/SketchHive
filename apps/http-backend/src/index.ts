@@ -127,12 +127,47 @@ app.post("/room", middleware, async (req, res) => {
     }
 });
 
+app.get("/chats/:roomId", async (req, res) => {
+    try {
+        const roomId = Number(req.params.roomId);
+        console.log(req.params.roomId);
+        const messages = await getPrismaClient().chat.findMany({
+            where: {
+                roomId: roomId
+            },
+            orderBy: {
+                id: "desc"
+            },
+            take: 500
+        });
+
+        res.json({
+            messages
+        })
+    } catch(e) {
+        console.log(e);
+        res.json({
+            messages: []
+        })
+    }
+    
+})
+
+app.get("/room/:slug", async (req, res) => {
+    const slug = req.params.slug;
+    const room = await getPrismaClient().room.findFirst({
+        where: {
+            slug
+        }
+    });
+
+    res.json({
+        room
+    })
+})
+
+
+
 app.listen(3001, () => {
     console.log("Server running on port 3001");
-});
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-    await getPrismaClient().$disconnect();
-    process.exit(0);
 });

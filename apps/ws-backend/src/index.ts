@@ -1,32 +1,144 @@
-import { WebSocketServer } from 'ws';
-import jwt from 'jsonwebtoken';
+import { WebSocketServer, WebSocket } from "ws";
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "@repo/backend-common/config";
+import { getPrismaClient } from "@repo/db/client";
+
+const prisma = getPrismaClient();
+
 const wss = new WebSocketServer({ port: 8080 });
-import { JWT_SECRET } from '@repo/backend-common/config';
-wss.on('connection', function connection(ws , request) {
-  
-  const url = request.url;
-    if (!url) {
-    ws.close();
-    return;
+
+interface User {
+  ws: WebSocket;
+  rooms: number[];
+  userId: string;
+}
+
+const users: User[] = [];
+
+function checkUser(token: string): string | null {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (typeof decoded === "string") {
+      return null;
     }
 
-  const queryParams = new URLSearchParams(url.split('?')[1]);
-  const token = queryParams.get('token') || '';
-  const decoded = jwt.verify(token,JWT_SECRET);
-  ///@ts-ignore
-       if (!decoded|| !decoded.userId) {
+    if (!decoded || !decoded.userId) {
+      return null;
+    }
+
+    return decoded.userId;
+  } catch {
+    return null;
+  }
+}
+
+wss.on("connection", (ws, request) => {
+  const url = request.url;
+
+  if (!url) {
     ws.close();
     return;
   }
-  ws.on('message', function message(data) {
-    console.log('received: %s', data);
+
+  const query = url.split("?")[1] || "";
+  const queryParams = new URLSearchParams(query);
+  const token = queryParams.get("token") || "";
+
+  const userId = checkUser(token);
+
+  if (!userId) {
+    ws.close();
+    return;
+  }
+
+  users.push({
+    userId,
+    rooms: [],
+    ws,
   });
 
+  ws.on("message", async (data) => {
+    try {
+      const parsedData = JSON.parse(data.toString());
+
+      if (parsedData.type === "join_room") {
+        const user = users.find((x) => x.ws === ws);
+
+        if (!user) {
+          return;
+        }
+
+        const roomId = Number(parsedData.roomId);
+
+        if (isNaN(roomId)) {
+          return;
+        }
+
+        if (!user.rooms.includes(roomId)) {
+          user.rooms.push(roomId);
+        }
+      }
+
+      if (parsedData.type === "leave_room") {
+        const user = users.find((x) => x.ws === ws);
+
+        if (!user) {
+          return;
+        }
+
+        const roomId = Number(parsedData.roomId);
+
+        if (isNaN(roomId)) {
+          return;
+        }
+
+        user.rooms = user.rooms.filter(
+          (room) => room !== roomId
+        );
+      }
+
+      if (parsedData.type === "chat") {
+        const roomId = Number(parsedData.roomId);
+        const message = parsedData.message;
+
+        if (isNaN(roomId)) {
+          return;
+        }
+
+        const result = await prisma.chat.create({
+          data: {
+            roomId,
+            message,
+            userId,
+          },
+        });
+
+        console.log("Message stored:", result);
+
+        users.forEach((user) => {
+          if (user.rooms.includes(roomId)) {
+            user.ws.send(
+              JSON.stringify({
+                type: "chat",
+                roomId,
+                message,
+                userId,
+              })
+            );
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error processing websocket message:", error);
+    }
+  });
+
+  ws.on("close", () => {
+    const index = users.findIndex((x) => x.ws === ws);
+
+    if (index !== -1) {
+      users.splice(index, 1);
+    }
+  });
 });
-
-
-//think wss as a whole server of websocket layer and ws is a single connection to a client. Each time a client connects, a new ws object is created for that connection, allowing you to handle messages and events specific to that client. The wss object manages all the connections and can broadcast messages to all clients if needed.
-
-
-
-//Browser WebSocket clients cannot send custom Authorization headers, so JWT authentication is commonly implemented either through query parameters during the handshake or by sending an authentication message immediately after the connection is established. Node.js clients can use custom headers because they have low-level control over the HTTP handshake.
