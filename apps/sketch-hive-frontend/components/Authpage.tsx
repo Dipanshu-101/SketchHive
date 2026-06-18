@@ -14,9 +14,9 @@ export function AuthPage({isSignin}: {
             </div>
 
             <div className="pt-2 alingitems-center justify-center flex">
+                
                 <button className=" bg-red-800 rounded p-2" onClick={() => {
-
-                }}>{isSignin ? "Sign in" : "Sign up"}</button>
+                 }}>{isSignin ? "Sign in" : "Sign up"}</button>
             </div>
         </div>
     </div>
