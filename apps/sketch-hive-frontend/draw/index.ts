@@ -35,7 +35,7 @@ export default async function initDraw(canvas: HTMLCanvasElement , roomId:string
 
                 if (message.type == "chat"){
                     const parsedShape = JSON.parse(message.message)
-                   existingShape.push(parsedShape)
+                   existingShape.push(parsedShape.shape)
                    clearCanvas(existingShape, ctx, canvas);
                 }
             }
@@ -105,12 +105,12 @@ function clearCanvas(existingShape: Shape[], ctx: CanvasRenderingContext2D, canv
     
 
 async function getExistingShapes(roomId: string){
-    const res = await axios.get(`~${HTTP_BACKEND_URL}/chats/${roomId}`)
+    const res = await axios.get(`${HTTP_BACKEND_URL}/chats/${roomId}`)
     const messages = res.data.messages;
 
-    const Shapes = messages.map((message: any) => {
-        const messageData = JSON.parse(message.data);
-        return messageData; 
+    const Shapes = messages.map((x :{message: any}) => {
+        const messageData = JSON.parse(x.message);
+        return messageData.shape; 
         })
     return Shapes;
     }
