@@ -2,26 +2,25 @@
 import {useEffect , useRef, useState} from "react";
 import initDraw from "@/draw";
 import { WS_BACKEND_URL } from "@/config";
+import { Canvas } from "./Canvas";
 
-export function Canvas ({roomId}: {roomId: string}) {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+export function RoomCanvas ({roomId}: {roomId: string}) {
+    
     const [socket, setSocket] = useState<WebSocket | null>(null);
 //@ts-ignore
     useEffect(() => {
-        const ws = new WebSocket(WS_BACKEND_URL);
+        const ws = new WebSocket(`WS_BACKEND_URL?token=`);
         
         ws.onopen = () => {
             setSocket(ws);
          }
-        
+         ws.send(JSON.stringify({
+            type: "join_room",
+            roomId
+         }))
+
          }  , []);
 
-
-    useEffect(() => {
-        if (canvasRef.current) {
-            initDraw(canvasRef.current, roomId);
-        }
-        }, [canvasRef]);
 
     if (!socket) { 
 
@@ -31,7 +30,7 @@ export function Canvas ({roomId}: {roomId: string}) {
             }
     return (
         <div >
-            <canvas ref={canvasRef} width={2800} height={1080} ></canvas>
+            <Canvas roomId= {roomId} socket ={socket}  />
         </div>
     )
 }
