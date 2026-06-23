@@ -10,6 +10,7 @@ export function AuthPage({isSignin}: {
 " type="text" placeholder="Email"></input>
             </div>
             <div className="p-2">
+                
                 <input className="border border-gray-300 rounded p-2 placeholder:text-gray-300" type="password" placeholder="Password"></input> 
             </div>
 
