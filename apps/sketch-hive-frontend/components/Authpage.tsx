@@ -32,6 +32,19 @@ export function AuthPage({
               : "Start collaborating with your team."}
           </p>
         </div>
+        
+        {/* Username */}
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Username
+          </label>
+
+          <input
+            type="Username"
+            placeholder="UserXYZ"
+            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
 
         {/* Email */}
         <div className="mb-5">
@@ -58,6 +71,8 @@ export function AuthPage({
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
+
+        
 
         {/* Button */}
         <Button
