@@ -45,7 +45,7 @@ const handleSignin = async () => {
         password,
       }
     );
-
+    localStorage.setItem("token", response.data.token);
     console.log(response.data);
   } catch (error: any) {
     console.log(error.response?.data);
