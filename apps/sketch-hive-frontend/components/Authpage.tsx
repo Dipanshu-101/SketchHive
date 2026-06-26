@@ -5,7 +5,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { useState } from "react";
 import axios from "axios";
-
+import { useRouter } from "next/navigation";
 
 
 export function AuthPage({
@@ -13,7 +13,7 @@ export function AuthPage({
 }: {
   isSignin: boolean;
 }) {
-
+const router = useRouter();
 const [username, setUsername] = useState("");
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
@@ -30,9 +30,26 @@ try {
     );
 
     console.log(response.data);
+    router.push("/signin")
   } catch (error: any) {
     console.log(error.response?.data);
 }
+};
+
+const handleSignin = async () => {
+  try {
+    const response = await axios.post(
+      "http://localhost:3001/signin",
+      {
+        email,
+        password,
+      }
+    );
+
+    console.log(response.data);
+  } catch (error: any) {
+    console.log(error.response?.data);
+  }
 };
 
 
@@ -114,7 +131,13 @@ try {
           variant="primary"
           size="lg"
           className="w-full"
-           onClick={handleSignup}
+          onClick={() => {
+                if (isSignin) {
+                  handleSignin();
+                } else {
+                  handleSignup();
+                }
+              }}
         >
           {isSignin ? "Sign In" : "Create Account"}
         </Button>
