@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { useState } from "react";
-
+import axios from "axios";
 
 
 
@@ -17,6 +17,24 @@ export function AuthPage({
 const [username, setUsername] = useState("");
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
+
+const handleSignup = async () => {
+try {
+    const response = await axios.post(
+      "http://localhost:3001/signup",
+      {
+        username,
+        email,
+        password,
+      }
+    );
+
+    console.log(response.data);
+  } catch (error: any) {
+    console.log(error.response?.data);
+}
+};
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -96,7 +114,7 @@ const [password, setPassword] = useState("");
           variant="primary"
           size="lg"
           className="w-full"
-          onClick={() => {}}
+           onClick={handleSignup}
         >
           {isSignin ? "Sign In" : "Create Account"}
         </Button>
