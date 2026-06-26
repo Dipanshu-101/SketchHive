@@ -3,12 +3,21 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { Button } from "@repo/ui/button";
+import { useState } from "react";
+
+
+
 
 export function AuthPage({
   isSignin,
 }: {
   isSignin: boolean;
 }) {
+
+const [username, setUsername] = useState("");
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-xl">
@@ -32,19 +41,23 @@ export function AuthPage({
               : "Start collaborating with your team."}
           </p>
         </div>
-        
-        {/* Username */}
-        <div className="mb-6">
-          <label className="mb-2 block text-sm font-medium text-foreground">
-            Username
-          </label>
 
-          <input
-            type="Username"
-            placeholder="UserXYZ"
+            {/* Username */}
+            {!isSignin && (
+            <div className="mb-5">
+            <label className="mb-2 block text-sm font-medium text-foreground">
+            Username
+            </label>
+
+            <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="John Doe"
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
+            />
+            </div>
+            )}
 
         {/* Email */}
         <div className="mb-5">
@@ -54,6 +67,8 @@ export function AuthPage({
 
           <input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
@@ -67,6 +82,8 @@ export function AuthPage({
 
           <input
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
