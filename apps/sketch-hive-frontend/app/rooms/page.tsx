@@ -9,20 +9,44 @@ import { useRouter } from "next/navigation";
 
 export default function RoomsPage() {
     const [roomCode, setRoomCode] = useState("");
+    const [roomName, setRoomName] = useState("");
+
+
     const router = useRouter();
-    console.log(roomCode);
 
-    const handleJoinRoom = async () => {
-    try {
-        const response = await axios.get(
-        `http://localhost:3001/chats/${roomCode}`
-        );
+    
 
-        console.log(response.data);
-    } catch (error: any) {
-        console.log(error.response?.data);
-    }
-    };
+            const handleJoinRoom = () => {
+                if (!roomCode.trim()) {
+                    return;
+                }
+
+                router.push(`/canvas/${roomCode}`);
+                };
+
+const handleCreateRoom = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.post(
+      "http://localhost:3001/room",
+      {
+        name: roomName,
+      },
+      {
+        headers: {
+          Authorization: token,
+        },
+      }
+    );
+
+    console.log(response.data);
+
+    router.push(`/canvas/${response.data.roomId}`);
+  } catch (error: any) {
+    console.log(error.response?.data);
+  }
+};
     
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -73,15 +97,29 @@ export default function RoomsPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        {/* Create Room */}
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full"
-        >
-          <Pencil className="h-4 w-4" />
-          Create New Room
-        </Button>
+        <div className="space-y-3">
+  <label className="text-sm font-medium text-foreground">
+    Room Name
+  </label>
+
+  <input
+    type="text"
+    value={roomName}
+    onChange={(e) => setRoomName(e.target.value)}
+    placeholder="Enter room name"
+    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+  />
+
+  <Button
+    variant="primary"
+    size="lg"
+    className="w-full"
+    onClick={handleCreateRoom}
+  >
+    <Pencil className="h-4 w-4" />
+    Create New Room
+  </Button>
+</div>
       </Card>
     </div>
   );

@@ -46,6 +46,7 @@ const handleSignin = async () => {
       }
     );
     localStorage.setItem("token", response.data.token);
+     router.push("/rooms");
     console.log(response.data);
   } catch (error: any) {
     console.log(error.response?.data);
