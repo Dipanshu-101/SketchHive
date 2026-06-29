@@ -33,6 +33,75 @@ function checkUser(token: string): string | null {
   }
 }
 
+/**
+ * Persists a drawing operation carried inside a `chat` message string.
+ *
+ * Message format (draw/net.ts):
+ *   - add/update : { v, op, shape: { id, ... } }
+ *   - delete     : { v, op:"delete", id }
+ *   - clear      : { v, op:"clear" }
+ *   - legacy add : { shape: { ... } }  (no op)
+ *
+ * Storage model is unchanged from the original engine: every persisted shape is
+ * one Chat row whose `message` is `JSON.stringify({ shape })`. This keeps the
+ * HTTP loader (GET /chats) untouched.
+ */
+async function persistChatOp(
+  roomId: number,
+  userId: string,
+  message: string
+): Promise<void> {
+  let payload: any;
+  try {
+    payload = JSON.parse(message);
+  } catch {
+    return;
+  }
+
+  const op: string = payload.op ?? (payload.shape ? "add" : "");
+
+  if (op === "add") {
+    // Store one row containing the shape (legacy-compatible format).
+    await prisma.chat.create({
+      data: { roomId, userId, message: JSON.stringify({ shape: payload.shape }) },
+    });
+    return;
+  }
+
+  if (op === "update" || op === "delete") {
+    const targetId: string | undefined =
+      op === "update" ? payload.shape?.id : payload.id;
+    if (!targetId) return;
+
+    // Find the row(s) holding this shape id and update or remove them.
+    const rows = await prisma.chat.findMany({ where: { roomId } });
+    for (const row of rows) {
+      let shapeId: string | undefined;
+      try {
+        shapeId = JSON.parse(row.message)?.shape?.id;
+      } catch {
+        continue;
+      }
+      if (shapeId !== targetId) continue;
+
+      if (op === "delete") {
+        await prisma.chat.delete({ where: { id: row.id } });
+      } else {
+        await prisma.chat.update({
+          where: { id: row.id },
+          data: { message: JSON.stringify({ shape: payload.shape }) },
+        });
+      }
+    }
+    return;
+  }
+
+  if (op === "clear") {
+    await prisma.chat.deleteMany({ where: { roomId } });
+    return;
+  }
+}
+
 wss.on("connection", (ws, request) => {
   const url = request.url;
 
@@ -106,22 +175,21 @@ wss.on("connection", (ws, request) => {
 
       if (parsedData.type === "chat") {
         const roomId = Number(parsedData.roomId);
-        const message = parsedData.message;
+        const message: string = parsedData.message;
 
         if (isNaN(roomId)) {
           return;
         }
 
-        const result = await prisma.chat.create({
-          data: {
-            roomId: Number(roomId),
-            message,
-            userId,
-          },
-        });
+        // Persist the change. The drawing engine sends a versioned operation
+        // inside `message` (see draw/net.ts). We keep the historical storage
+        // format — each "add" remains one chat row holding `{ shape }` — so the
+        // existing GET /chats loader keeps working, while update/delete/clear
+        // mutate those rows to keep reloads consistent with live state.
+        await persistChatOp(roomId, userId, message);
 
-        console.log("Message stored:", result);
-
+        // Broadcast to everyone in the room (including the sender so their
+        // optimistic state and the server agree).
         users.forEach((user) => {
           if (user.rooms.includes(roomId)) {
             user.ws.send(
