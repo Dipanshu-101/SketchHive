@@ -66,11 +66,30 @@ export class Game {
     this.socket = socket;
     this.renderer = new Renderer(canvas, () => this.scene());
 
+    this.resizeCanvas();
     this.bindSocket();
     this.bindMouse();
     this.bindKeys();
+    window.addEventListener("resize", this.onResize);
     void this.loadInitial();
   }
+
+  /**
+   * Size the canvas backing store to the window. This must track resizes or the
+   * infinite grid would stop covering the viewport after the window grows.
+   * Only changes the bitmap dimensions — the camera and shapes are untouched.
+   */
+  private resizeCanvas(): void {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (this.canvas.width !== w) this.canvas.width = w;
+    if (this.canvas.height !== h) this.canvas.height = h;
+  }
+
+  private onResize = (): void => {
+    this.resizeCanvas();
+    this.renderer.schedule();
+  };
 
   /* ------------------------------------------------------------------ *
    * Public API used by React                                            *
@@ -111,6 +130,8 @@ export class Game {
     this.canvas.removeEventListener("mousemove", this.onMouseMove);
     window.removeEventListener("mouseup", this.onMouseUp);
     window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+    window.removeEventListener("resize", this.onResize);
     this.socket.onmessage = null;
     this.removeTextarea();
     this.renderer.destroy();
@@ -274,10 +295,15 @@ export class Game {
   private onMouseDown = (e: MouseEvent): void => {
     const screen = this.toCanvasPoint(e);
 
-    // Panning takes priority over any tool: middle-mouse drag, or Space + left
-    // drag. We store the screen anchor + camera origin and convert deltas to
-    // world units on move. The camera moves; shapes never do.
-    if (e.button === 1 || (e.button === 0 && this.spaceDown)) {
+    // Panning takes priority over any tool. Three ways to pan:
+    //   - the dedicated Pan (Hand) tool + left drag
+    //   - middle-mouse drag (any tool)
+    //   - Space + left drag (any tool)
+    // We store the screen anchor + camera origin and convert deltas to world
+    // units on move. The camera moves; shapes never do.
+    const leftPan =
+      e.button === 0 && (this.currentTool === Tool.Pan || this.spaceDown);
+    if (e.button === 1 || leftPan) {
       e.preventDefault();
       this.beginPan(screen.x, screen.y);
       return;
@@ -483,13 +509,20 @@ export class Game {
    * Text overlay                                                        *
    * ------------------------------------------------------------------ */
 
-  private openTextEditor(x: number, y: number): void {
+  /**
+   * Opens the text overlay. `worldX`/`worldY` are WORLD coordinates (where the
+   * text will be stored). The DOM textarea, however, lives in screen space, so
+   * we convert world -> screen to place it under the cursor, and persist the
+   * world coords in the dataset for commit.
+   */
+  private openTextEditor(worldX: number, worldY: number): void {
     this.commitTextIfEditing();
     const rect = this.canvas.getBoundingClientRect();
+    const screen = this.worldToScreen(worldX, worldY);
     const ta = document.createElement("textarea");
     ta.style.position = "fixed";
-    ta.style.left = `${rect.left + x}px`;
-    ta.style.top = `${rect.top + y}px`;
+    ta.style.left = `${rect.left + screen.x}px`;
+    ta.style.top = `${rect.top + screen.y}px`;
     // The canvas wrapper sets `isolation: isolate` + `zIndex: 20`, creating a
     // stacking context. This textarea is appended to <body>, so it competes at
     // body level — use the max z-index so it always sits above the canvas and
@@ -513,8 +546,10 @@ export class Game {
     ta.style.height = `${20 * 1.2 + 2}px`;
     ta.style.minWidth = "60px";
     ta.rows = 1;
-    ta.dataset.x = String(x);
-    ta.dataset.y = String(y);
+    // Persist WORLD coords so the committed TextShape lands at the right place
+    // regardless of where the camera is when the user finishes typing.
+    ta.dataset.x = String(worldX);
+    ta.dataset.y = String(worldY);
 
     // Auto-grow height as the user adds lines so multi-line text is visible.
     ta.addEventListener("input", () => {
@@ -660,6 +695,15 @@ export class Game {
    * ------------------------------------------------------------------ */
 
   private updateCursor(): void {
+    // Pan affordances win over the tool cursor.
+    if (this.panning) {
+      this.canvas.style.cursor = "grabbing";
+      return;
+    }
+    if (this.spaceDown || this.currentTool === Tool.Pan) {
+      this.canvas.style.cursor = "grab";
+      return;
+    }
     if (this.currentTool === Tool.Select) this.canvas.style.cursor = "default";
     else if (this.currentTool === Tool.Text) this.canvas.style.cursor = "text";
     else if (this.currentTool === Tool.Eraser) this.canvas.style.cursor = "cell";

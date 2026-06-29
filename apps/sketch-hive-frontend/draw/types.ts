@@ -16,6 +16,7 @@
 /** The active drawing tool. Toolbar buttons simply switch this value. */
 export enum Tool {
   Select = "select",
+  Pan = "pan",
   Rectangle = "rectangle",
   Circle = "circle",
   Line = "line",

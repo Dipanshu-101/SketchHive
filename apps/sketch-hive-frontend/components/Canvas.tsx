@@ -5,6 +5,7 @@ import {
   Circle,
   Diamond,
   Eraser,
+  Hand,
   Minus,
   MousePointer2,
   MoveUpRight,
@@ -120,8 +121,88 @@ function Toolbar({
         />
       ))}
       <div style={{ width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+      <PanToolButton
+        active={selectedTool === Tool.Pan}
+        onClick={() =>
+          onSelectTool(selectedTool === Tool.Pan ? Tool.Select : Tool.Pan)
+        }
+      />
+      <div style={{ width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
       <IconButton icon={<Undo2 size={18} />} title="Undo" activated={false} onClick={onUndo} />
       <IconButton icon={<Redo2 size={18} />} title="Redo" activated={false} onClick={onRedo} />
     </div>
   );
 }
+
+/**
+ * The infinite-pan ("Hand") tool button. Unlike the plain icon buttons this one
+ * is deliberately eye-catching: a vivid gradient + glow + gentle pulse while
+ * active, signalling that the canvas is in free-roam mode. Toggling it off
+ * returns to the Select tool so normal drawing resumes.
+ *
+ * All animation is injected via a one-time <style> tag (no CSS-file plumbing).
+ */
+function PanToolButton({ active, onClick }: { active: boolean; onClick: () => void }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <>
+      <style>{PAN_BUTTON_KEYFRAMES}</style>
+      <button
+        type="button"
+        title="Infinite Pan — drag to roam the canvas"
+        aria-label="Infinite Pan"
+        aria-pressed={active}
+        onClick={onClick}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          border: "none",
+          cursor: "grab",
+          color: "#ffffff",
+          // Use longhand background properties only — mixing the `background`
+          // shorthand with `backgroundSize` triggers a React style conflict.
+          // Vivid animated gradient when active; a calmer tinted state otherwise.
+          backgroundColor: "rgba(124,58,237,0.18)",
+          backgroundImage: active
+            ? "linear-gradient(135deg,#7c3aed,#4f8cff,#22d3ee)"
+            : hover
+              ? "linear-gradient(135deg,rgba(124,58,237,0.35),rgba(79,140,255,0.35))"
+              : "none",
+          backgroundSize: active ? "200% 200%" : "100% 100%",
+          boxShadow: active
+            ? "0 0 0 1px rgba(124,58,237,0.6), 0 0 14px 2px rgba(79,140,255,0.55)"
+            : "0 0 0 1px rgba(124,58,237,0.35)",
+          transform: active || hover ? "scale(1.06)" : "scale(1)",
+          transition:
+            "transform 140ms ease, box-shadow 200ms ease, background-color 200ms ease, background-image 200ms ease",
+          // Slide the gradient + a soft glow pulse while the tool is engaged.
+          animation: active ? "panGradient 4s ease infinite, panPulse 1.8s ease-in-out infinite" : "none",
+        }}
+      >
+        <Hand size={18} style={{ animation: active ? "panWave 1.6s ease-in-out infinite" : "none" }} />
+      </button>
+    </>
+  );
+}
+
+const PAN_BUTTON_KEYFRAMES = `
+@keyframes panGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes panPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(124,58,237,0.6), 0 0 10px 1px rgba(79,140,255,0.45); }
+  50% { box-shadow: 0 0 0 1px rgba(124,58,237,0.8), 0 0 18px 4px rgba(34,211,238,0.65); }
+}
+@keyframes panWave {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+`;
