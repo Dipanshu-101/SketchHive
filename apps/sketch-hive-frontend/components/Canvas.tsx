@@ -1,5 +1,4 @@
 //@ts-ignore
-import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconsButton";
 import { Circle, Pencil, RectangleHorizontalIcon } from "lucide-react";
