@@ -26,6 +26,9 @@ if (!databaseUrl) {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // node-postgres does not understand libpq's `sslmode=verify-full` /
+  // `channel_binding` URL params, so configure TLS explicitly.
+  ssl: { rejectUnauthorized: true },
 });
 
 const adapter = new PrismaPg(pool);

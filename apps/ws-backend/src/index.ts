@@ -61,6 +61,15 @@ async function persistChatOp(
   const op: string = payload.op ?? (payload.shape ? "add" : "");
 
   if (op === "add") {
+    // The roomId arrives from the client URL and is not guaranteed to map to an
+    // existing Room row (stale id, deleted room, or a slug mistaken for an id),
+    // which would otherwise blow up on the Chat_roomId_fkey constraint.
+    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    if (!room) {
+      console.warn(`[ws] dropping chat for non-existent room ${roomId}`);
+      return;
+    }
+
     // Store one row containing the shape (legacy-compatible format).
     await prisma.chat.create({
       data: { roomId, userId, message: JSON.stringify({ shape: payload.shape }) },
