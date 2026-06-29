@@ -37,10 +37,26 @@ export function Canvas({
     }, [canvasRef]);
 
     return <div style={{
+        position: "relative",
+        zIndex: 20,
+        width: "100vw",
         height: "100vh",
-        overflow: "hidden"
+        overflow: "hidden",
+        isolation: "isolate",
+        cursor: "crosshair"
     }}>
-        <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight}></canvas>
+        <canvas
+            ref={canvasRef}
+            width={window.innerWidth}
+            height={window.innerHeight}
+            style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 20,
+                display: "block",
+                cursor: "crosshair"
+            }}
+        ></canvas>
         <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool} />
     </div>
 }
@@ -52,7 +68,8 @@ function Topbar({selectedTool, setSelectedTool}: {
     return <div style={{
             position: "fixed",
             top: 10,
-            left: 10
+            left: 10,
+            zIndex: 30
         }}>
             <div className="flex gap-t">
                 <IconButton 
