@@ -12,7 +12,7 @@
  * history, rendering and networking are all small and independently testable.
  */
 import { Tool } from "./types";
-import type { Bounds, ShapeData, ShapeStyle } from "./types";
+import type { Bounds, Camera, Point, ShapeData, ShapeStyle } from "./types";
 import { Shape } from "./shapes/Shape";
 import { createShape, DEFAULT_STYLE } from "./shapes/factory";
 import { Renderer, type Scene } from "./Renderer";
@@ -39,6 +39,18 @@ export class Game {
   private freePoints: { x: number; y: number }[] = [];
   private mouse: MouseState = { down: false, startX: 0, startY: 0, lastX: 0, lastY: 0 };
   private movedDuringDrag = false;
+
+  // ---- viewport --------------------------------------------------------
+  /** The window onto the infinite plane. zoom is fixed to 1 for now. */
+  private camera: Camera = { x: 0, y: 0, zoom: 1 };
+  /** Panning gesture state (Space+drag or middle-mouse drag). */
+  private panning = false;
+  /** True while the Space key is held, arming left-drag panning. */
+  private spaceDown = false;
+  /** Screen-space anchor where the current pan began. */
+  private panStart = { x: 0, y: 0 };
+  /** Camera position captured when the pan began. */
+  private panOrigin = { x: 0, y: 0 };
 
   // ---- collaborators ---------------------------------------------------
   private canvas: HTMLCanvasElement;
@@ -113,6 +125,31 @@ export class Game {
       shapes: this.shapes,
       preview: this.preview,
       selectionBounds: this.selectionBounds(),
+      camera: this.camera,
+    };
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Camera / coordinate conversion                                      *
+   *                                                                     *
+   * Shapes are stored in WORLD coordinates and never mutated by panning. *
+   * Mouse events arrive in SCREEN (canvas-local) pixels, so every gesture *
+   * converts to world space before hit-testing or building a shape.      *
+   * ------------------------------------------------------------------ */
+
+  /** Screen (canvas-local) pixels -> world coordinates. */
+  private screenToWorld(sx: number, sy: number): Point {
+    return {
+      x: sx / this.camera.zoom + this.camera.x,
+      y: sy / this.camera.zoom + this.camera.y,
+    };
+  }
+
+  /** World coordinates -> screen (canvas-local) pixels. */
+  private worldToScreen(wx: number, wy: number): Point {
+    return {
+      x: (wx - this.camera.x) * this.camera.zoom,
+      y: (wy - this.camera.y) * this.camera.zoom,
     };
   }
 
@@ -235,7 +272,18 @@ export class Game {
   }
 
   private onMouseDown = (e: MouseEvent): void => {
-    const { x, y } = this.toCanvasPoint(e);
+    const screen = this.toCanvasPoint(e);
+
+    // Panning takes priority over any tool: middle-mouse drag, or Space + left
+    // drag. We store the screen anchor + camera origin and convert deltas to
+    // world units on move. The camera moves; shapes never do.
+    if (e.button === 1 || (e.button === 0 && this.spaceDown)) {
+      e.preventDefault();
+      this.beginPan(screen.x, screen.y);
+      return;
+    }
+
+    const { x, y } = this.screenToWorld(screen.x, screen.y);
     this.mouse = { down: true, startX: x, startY: y, lastX: x, lastY: y };
     this.movedDuringDrag = false;
 
@@ -264,7 +312,15 @@ export class Game {
   };
 
   private onMouseMove = (e: MouseEvent): void => {
-    const { x, y } = this.toCanvasPoint(e);
+    const screen = this.toCanvasPoint(e);
+
+    // A pan in progress consumes the move; tools are inactive while panning.
+    if (this.panning) {
+      this.updatePan(screen.x, screen.y);
+      return;
+    }
+
+    const { x, y } = this.screenToWorld(screen.x, screen.y);
     if (!this.mouse.down) return;
     this.movedDuringDrag = true;
 
@@ -290,8 +346,15 @@ export class Game {
   };
 
   private onMouseUp = (e: MouseEvent): void => {
+    // End a pan gesture if one was active (independent of any tool drag).
+    if (this.panning) {
+      this.endPan();
+      return;
+    }
+
     if (!this.mouse.down) return;
-    const { x, y } = this.toCanvasPoint(e);
+    const screen = this.toCanvasPoint(e);
+    const { x, y } = this.screenToWorld(screen.x, screen.y);
     this.mouse.down = false;
 
     if (this.currentTool === Tool.Select) {
@@ -331,6 +394,36 @@ export class Game {
     if (shape.type === "freestroke") return true;
     const b = shape.getBounds();
     return b.width > 2 || b.height > 2;
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Panning (camera movement — never touches shape coordinates)         *
+   * ------------------------------------------------------------------ */
+
+  private beginPan(screenX: number, screenY: number): void {
+    this.panning = true;
+    this.panStart = { x: screenX, y: screenY };
+    this.panOrigin = { x: this.camera.x, y: this.camera.y };
+    // Any half-started tool drag is abandoned the moment a pan begins.
+    this.mouse.down = false;
+    this.preview = null;
+    this.canvas.style.cursor = "grabbing";
+  }
+
+  private updatePan(screenX: number, screenY: number): void {
+    // A screen delta of N pixels moves the world by N / zoom world units. We
+    // SUBTRACT because dragging the content right means the camera (the window)
+    // moves left.
+    const dx = (screenX - this.panStart.x) / this.camera.zoom;
+    const dy = (screenY - this.panStart.y) / this.camera.zoom;
+    this.camera.x = this.panOrigin.x - dx;
+    this.camera.y = this.panOrigin.y - dy;
+    this.renderer.schedule();
+  }
+
+  private endPan(): void {
+    this.panning = false;
+    this.updateCursor();
   }
 
   /* ------------------------------------------------------------------ *
@@ -487,11 +580,21 @@ export class Game {
 
   private bindKeys(): void {
     window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
     // Don't hijack typing inside the text overlay.
     if (this.textarea && document.activeElement === this.textarea) return;
+
+    // Space arms left-drag panning. preventDefault stops the page from
+    // scrolling. Show the open-hand cursor as an affordance until the drag.
+    if (e.code === "Space" && !this.spaceDown) {
+      e.preventDefault();
+      this.spaceDown = true;
+      if (!this.panning) this.canvas.style.cursor = "grab";
+      return;
+    }
 
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === "z") {
@@ -504,6 +607,14 @@ export class Game {
     } else if ((e.key === "Delete" || e.key === "Backspace") && this.selectedId) {
       e.preventDefault();
       this.deleteShape(this.selectedId);
+    }
+  };
+
+  private onKeyUp = (e: KeyboardEvent): void => {
+    if (e.code === "Space") {
+      this.spaceDown = false;
+      // Restore the tool cursor unless a pan drag is still in flight.
+      if (!this.panning) this.updateCursor();
     }
   };
 

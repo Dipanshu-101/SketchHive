@@ -43,6 +43,25 @@ export interface Point {
   y: number;
 }
 
+/**
+ * The viewport's window onto the infinite world plane.
+ *
+ *   - `x`/`y` are the WORLD coordinates that sit at the top-left of the screen.
+ *   - `zoom` scales world units to screen pixels.
+ *
+ * Conversions (kept consistent everywhere):
+ *   screenX = (worldX - camera.x) * zoom
+ *   worldX  = screenX / zoom + camera.x
+ *
+ * `zoom` is wired through every calculation but currently fixed to 1, so a real
+ * zoom feature is a single value change away — no formula needs to be rewritten.
+ */
+export interface Camera {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
 /** Axis-aligned bounding box, used for selection + eraser hit-testing. */
 export interface Bounds {
   x: number;
