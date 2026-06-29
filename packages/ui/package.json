@@ -3,12 +3,47 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./*": "./src/*.tsx"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./button": {
+      "types": "./src/button.tsx",
+      "default": "./src/button.tsx"
+    },
+    "./card": {
+      "types": "./src/card.tsx",
+      "default": "./src/card.tsx"
+    },
+    "./input": {
+      "types": "./src/input.tsx",
+      "default": "./src/input.tsx"
+    },
+    "./water-ripple-bg": {
+      "types": "./src/water-ripple-bg.tsx",
+      "default": "./src/water-ripple-bg.tsx"
+    },
+    "./glass-panel": {
+      "types": "./src/glass-panel.tsx",
+      "default": "./src/glass-panel.tsx"
+    },
+    "./site-navbar": {
+      "types": "./src/site-navbar.tsx",
+      "default": "./src/site-navbar.tsx"
+    },
+    "./page-shell": {
+      "types": "./src/page-shell.tsx",
+      "default": "./src/page-shell.tsx"
+    }
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
