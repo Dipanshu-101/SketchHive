@@ -166,6 +166,41 @@ app.get("/room/:slug", async (req, res) => {
     })
 })
 
+/**
+ * Room chat history (Version 1 collaboration chat).
+ *
+ * This is the REAL human-to-human chat, persisted in the `Message` table — it is
+ * completely separate from `/chats/:roomId`, which returns serialized drawing
+ * shapes from the `Chat` table.
+ *
+ * Returned in chronological order (oldest first) so the client can render the
+ * transcript top-to-bottom without reversing. We cap at the most recent 200
+ * messages: we fetch the newest 200 by createdAt desc, then reverse to ascending.
+ */
+app.get("/rooms/:roomId/messages", async (req, res) => {
+    try {
+        const roomId = Number(req.params.roomId);
+
+        if (Number.isNaN(roomId)) {
+            return res.status(400).json({ error: "Invalid roomId", messages: [] });
+        }
+
+        const recent = await getPrismaClient().message.findMany({
+            where: { roomId },
+            orderBy: { createdAt: "desc" },
+            take: 200,
+        });
+
+        // Reverse to chronological (oldest -> newest) for top-to-bottom rendering.
+        const messages = recent.reverse();
+
+        res.json({ messages });
+    } catch (error) {
+        console.error("GET /rooms/:roomId/messages failed:", error);
+        res.status(500).json({ error: "Internal server error", messages: [] });
+    }
+});
+
 
 
 app.listen(3001, () => {

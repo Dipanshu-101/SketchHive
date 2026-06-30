@@ -14,6 +14,7 @@ model User {
   photo     String?
   room      Room[]
   chats     Chat[]
+  messages  Message[]
 }
 
 model Room {
@@ -23,8 +24,13 @@ model Room {
   adminId   String
   admin    User     @relation(fields: [adminId], references: [id])
   chats     Chat[]
-}  
+  messages  Message[]
+}
 
+// NOTE: `Chat` is the whiteboard's persistence table. Despite the name, each
+// row stores ONE drawing operation (a serialized shape) — see ws-backend's
+// persistChatOp and draw/net.ts. It is NOT the collaboration chat. Leaving it
+// exactly as-is keeps drawing sync untouched.
 model Chat {
   id        Int   @id @default(autoincrement())
   message   String
@@ -32,4 +38,27 @@ model Chat {
   roomId    Int
   room     Room     @relation(fields: [roomId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
+}
+
+// `Message` is the real, human-to-human room chat (Version 1).
+//
+// senderName is denormalized on purpose: it is captured at write time so the
+// chat history renders correctly even if the user later changes their display
+// name, and so reads never need to join User. The `user` relation is still kept
+// for integrity and future features (mentions, profiles).
+//
+// Indexed by (roomId, createdAt) because the only read pattern is "the latest N
+// messages for a room, in chronological order".
+model Message {
+  id         String   @id @default(uuid())
+  roomId     Int
+  senderId   String
+  senderName String
+  message    String
+  createdAt  DateTime @default(now())
+
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id])
+
+  @@index([roomId, createdAt])
 }
