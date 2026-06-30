@@ -111,6 +111,104 @@ async function persistChatOp(
   }
 }
 
+/**
+ * Per-connection cap on chat message length. Anything longer is rejected before
+ * it ever touches the database. Mirrors a sensible UI limit and protects the row.
+ */
+const MAX_CHAT_LENGTH = 4000;
+
+/**
+ * Cache of userId -> display name. The sender's identity is taken from the JWT
+ * (server-authoritative — we never trust a client-supplied senderId/senderName),
+ * and the display name is looked up once and reused. Names rarely change inside
+ * a session, so this avoids a User read on every single message.
+ */
+const senderNameCache = new Map<string, string>();
+
+async function resolveSenderName(userId: string): Promise<string | null> {
+  const cached = senderNameCache.get(userId);
+  if (cached) return cached;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
+  if (!user) return null;
+
+  senderNameCache.set(userId, user.name);
+  return user.name;
+}
+
+/**
+ * Handles an incoming `chat_message`.
+ *
+ * Payload from the client:
+ *   { type:"chat_message", roomId, message, clientId? }
+ *
+ * Flow:
+ *   1. Validate roomId + non-empty message (length-capped).
+ *   2. Confirm the room exists (avoids FK violations on stale ids).
+ *   3. Resolve the sender's display name from the JWT-derived userId.
+ *   4. Persist one `Message` row.
+ *   5. Broadcast the saved row to EVERY socket joined to that room — and ONLY
+ *      that room — including the sender, echoing back `clientId` so the sender
+ *      can swap its optimistic placeholder for the authoritative server copy.
+ */
+async function handleChatMessage(
+  senderWs: WebSocket,
+  userId: string,
+  parsedData: any
+): Promise<void> {
+  const roomId = Number(parsedData.roomId);
+  if (isNaN(roomId)) return;
+
+  const raw = typeof parsedData.message === "string" ? parsedData.message : "";
+  const message = raw.trim();
+  if (!message) return;
+  if (message.length > MAX_CHAT_LENGTH) return;
+
+  // `clientId` is an opaque round-trip token for optimistic reconciliation.
+  const clientId: string | undefined =
+    typeof parsedData.clientId === "string" ? parsedData.clientId : undefined;
+
+  // Guard against stale/deleted rooms before hitting the FK constraint.
+  const room = await prisma.room.findUnique({ where: { id: roomId } });
+  if (!room) {
+    console.warn(`[ws] dropping chat_message for non-existent room ${roomId}`);
+    return;
+  }
+
+  const senderName = await resolveSenderName(userId);
+  if (!senderName) {
+    console.warn(`[ws] dropping chat_message for unknown user ${userId}`);
+    return;
+  }
+
+  const saved = await prisma.message.create({
+    data: { roomId, senderId: userId, senderName, message },
+  });
+
+  const frame = JSON.stringify({
+    type: "chat_message",
+    clientId,
+    message: {
+      id: saved.id,
+      roomId: saved.roomId,
+      senderId: saved.senderId,
+      senderName: saved.senderName,
+      message: saved.message,
+      createdAt: saved.createdAt.toISOString(),
+    },
+  });
+
+  // Broadcast ONLY to sockets joined to this room (never globally).
+  users.forEach((user) => {
+    if (user.rooms.includes(roomId)) {
+      user.ws.send(frame);
+    }
+  });
+}
+
 wss.on("connection", (ws, request) => {
   const url = request.url;
 
@@ -211,6 +309,17 @@ wss.on("connection", (ws, request) => {
             );
           }
         });
+      }
+
+      // ----------------------------------------------------------------- //
+      // Real collaboration chat (Version 1).                              //
+      //                                                                   //
+      // This is intentionally a SEPARATE message type from "chat" (which  //
+      // carries drawing operations). It persists to the dedicated         //
+      // `Message` table and never touches drawing sync.                   //
+      // ----------------------------------------------------------------- //
+      if (parsedData.type === "chat_message") {
+        await handleChatMessage(ws, userId, parsedData);
       }
     } catch (error) {
       console.error("Error processing websocket message:", error);
