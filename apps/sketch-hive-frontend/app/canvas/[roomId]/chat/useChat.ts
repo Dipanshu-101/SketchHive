@@ -79,11 +79,13 @@ export function useChat(
     socket ? "connected" : "connecting"
   );
 
-  // Local user id resolved once on mount (decode-only; see auth.ts).
-  const localIdRef = useRef<string | null>(null);
+  // Local user id resolved once on mount (decode-only; see auth.ts). Stored in
+  // state — not a ref — so the merged message list recomputes once it resolves
+  // and own-message alignment is correct from the first render onward.
+  const [localId, setLocalId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    localIdRef.current = getLocalUserId();
+    setLocalId(getLocalUserId());
     setReady(true);
   }, []);
 
@@ -198,7 +200,6 @@ export function useChat(
 
   // ---- merged, ordered view list ----------------------------------------
   const messages = useMemo<ChatMessageView[]>(() => {
-    const localId = localIdRef.current;
     const confirmedViews = Array.from(confirmed.values()).map((dto) =>
       toView(dto, localId)
     );
@@ -216,7 +217,7 @@ export function useChat(
 
     // Pending always sorts after confirmed (they're the newest, unsent).
     return [...confirmedViews, ...pendingViews];
-  }, [confirmed, pending, ready]);
+  }, [confirmed, pending, localId]);
 
   return {
     messages,
