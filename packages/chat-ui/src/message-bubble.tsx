@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import { chatTheme } from "./theme";
 import { Timestamp } from "./timestamp";
 import type { ChatMessageView } from "./types";
@@ -35,7 +35,6 @@ export function MessageBubble({
   showTimestamp = true,
   onRetry,
 }: MessageBubbleProps) {
-  const [hovered, setHovered] = useState(false);
   const isOwn = message.isOwn;
   const status = message.status ?? "sent";
   const failed = status === "failed";
@@ -68,11 +67,7 @@ export function MessageBubble({
   };
 
   return (
-    <div
-      style={rowStyle}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div style={rowStyle}>
       <div style={bubbleStyle}>
         <div
           style={{

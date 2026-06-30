@@ -78,7 +78,6 @@ export function Avatar({ name, seed, src, size = 32, style }: AvatarProps) {
   if (src) {
     return (
       <div style={base} title={name}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={name}

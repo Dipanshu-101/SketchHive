@@ -5,6 +5,7 @@ import type { ChatMessageView } from "@repo/chat-ui";
 import { getLocalUserId } from "./auth";
 import { useChatHistory } from "./hooks/useChatHistory";
 import { useChatSocket } from "./hooks/useChatSocket";
+import { useConnectionState } from "./hooks/useConnectionState";
 import type { ChatConnectionState, ChatMessageDTO } from "./types";
 
 /** A pending optimistic message: rendered immediately, awaiting server echo. */
@@ -69,41 +70,25 @@ export function useChat(
 ): UseChatValue {
   const { messages: history, status, reload } = useChatHistory(roomId);
 
-  // Authoritative, server-confirmed messages keyed by id (history + echoes).
-  const [confirmed, setConfirmed] = useState<Map<string, ChatMessageDTO>>(
-    new Map()
-  );
+  // Live messages that arrived over the socket AFTER load, keyed by server id.
+  // History is kept separate (it owns the HTTP fetch) and the two are merged in
+  // the view memo below — so there is no "seed history into state" effect and
+  // therefore no setState-in-effect cascade.
+  const [live, setLive] = useState<Map<string, ChatMessageDTO>>(new Map());
   // Optimistic messages still awaiting their server echo, in send order.
   const [pending, setPending] = useState<PendingMessage[]>([]);
-  const [connection, setConnection] = useState<ChatConnectionState>(
-    socket ? "connected" : "connecting"
-  );
 
-  // Local user id resolved once on mount (decode-only; see auth.ts). Stored in
-  // state — not a ref — so the merged message list recomputes once it resolves
-  // and own-message alignment is correct from the first render onward.
-  const [localId, setLocalId] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    setLocalId(getLocalUserId());
-    setReady(true);
-  }, []);
-
-  // Seed confirmed map from history whenever it (re)loads.
-  useEffect(() => {
-    if (status !== "ready") return;
-    setConfirmed((prev) => {
-      const next = new Map(prev);
-      for (const dto of history) next.set(dto.id, dto);
-      return next;
-    });
-  }, [history, status]);
+  // Local user id resolved once, lazily (decode-only; see auth.ts). A lazy
+  // initializer runs during the first render only and reads localStorage, which
+  // is safe here because the whole chat tree is client-only ("use client").
+  const [localId] = useState<string | null>(() => getLocalUserId());
+  const ready = true;
 
   // ---- live socket ingestion --------------------------------------------
   const handleIncoming = useCallback(
     (dto: ChatMessageDTO, clientId?: string) => {
       // Record the authoritative copy (idempotent — keyed by server id).
-      setConfirmed((prev) => {
+      setLive((prev) => {
         const next = new Map(prev);
         next.set(dto.id, dto);
         return next;
@@ -119,35 +104,9 @@ export function useChat(
   const { send } = useChatSocket({ socket, roomId, onMessage: handleIncoming });
 
   // ---- connection state tracking ----------------------------------------
-  useEffect(() => {
-    if (!socket) {
-      setConnection("connecting");
-      return;
-    }
-    const sync = () => {
-      switch (socket.readyState) {
-        case WebSocket.OPEN:
-          setConnection("connected");
-          break;
-        case WebSocket.CONNECTING:
-          setConnection("connecting");
-          break;
-        default:
-          setConnection("disconnected");
-      }
-    };
-    sync();
-    const onOpen = () => setConnection("connected");
-    const onClose = () => setConnection("disconnected");
-    socket.addEventListener("open", onOpen);
-    socket.addEventListener("close", onClose);
-    socket.addEventListener("error", onClose);
-    return () => {
-      socket.removeEventListener("open", onOpen);
-      socket.removeEventListener("close", onClose);
-      socket.removeEventListener("error", onClose);
-    };
-  }, [socket]);
+  // The socket is an external store; useConnectionState reads it via
+  // useSyncExternalStore (no state mirroring, no effect cascade).
+  const connection = useConnectionState(socket);
 
   // When the socket reopens after a drop, refetch history so we recover any
   // messages that were broadcast while we were offline (the socket only
@@ -200,7 +159,13 @@ export function useChat(
 
   // ---- merged, ordered view list ----------------------------------------
   const messages = useMemo<ChatMessageView[]>(() => {
-    const confirmedViews = Array.from(confirmed.values()).map((dto) =>
+    // Merge history (HTTP) with live echoes (socket), de-duplicated by server
+    // id — live wins, since it's the freshest copy of the same row.
+    const byId = new Map<string, ChatMessageDTO>();
+    for (const dto of history) byId.set(dto.id, dto);
+    for (const [id, dto] of live) byId.set(id, dto);
+
+    const confirmedViews = Array.from(byId.values()).map((dto) =>
       toView(dto, localId)
     );
     confirmedViews.sort((a, b) => a.createdAt - b.createdAt);
@@ -217,7 +182,7 @@ export function useChat(
 
     // Pending always sorts after confirmed (they're the newest, unsent).
     return [...confirmedViews, ...pendingViews];
-  }, [confirmed, pending, localId]);
+  }, [history, live, pending, localId]);
 
   return {
     messages,

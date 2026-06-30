@@ -35,10 +35,14 @@ export function useChatSocket({
   roomId,
   onMessage,
 }: UseChatSocketArgs): UseChatSocketResult {
-  // Keep the latest callback in a ref so the effect doesn't re-subscribe on
-  // every render (onMessage is recreated by the parent on each state change).
+  // Keep the latest callback in a ref so the subscribe effect doesn't
+  // re-subscribe on every render (onMessage is recreated by the parent on each
+  // state change). The ref is updated in its own effect — never during render —
+  // so React's concurrent rendering can't observe a torn value.
   const onMessageRef = useRef(onMessage);
-  onMessageRef.current = onMessage;
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   useEffect(() => {
     if (!socket) return;
