@@ -23,6 +23,7 @@ export default function RoomsPage() {
     router.push(`/canvas/${roomCode}`);
     };
 
+    
 const handleCreateRoom = async () => {
   try {
     const token = localStorage.getItem("token");
