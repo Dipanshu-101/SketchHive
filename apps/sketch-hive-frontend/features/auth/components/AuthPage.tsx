@@ -18,20 +18,14 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* ── original logic, untouched ── */
+  /* Behavior unchanged — network calls now route through auth.service (§9). */
   const handleSignup = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post("http://localhost:3001/signup", {
-        username,
-        email,
-        password,
-      });
-      console.log(response.data);
+      await signup({ username, email, password });
       router.push("/signin");
     } catch (err: any) {
-      console.log(err.response?.data);
       setError(err.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
@@ -42,15 +36,9 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post("http://localhost:3001/signin", {
-        email,
-        password,
-      });
-      localStorage.setItem("token", response.data.token);
+      await signin({ email, password }); // persists the token internally
       router.push("/rooms");
-      console.log(response.data);
     } catch (err: any) {
-      console.log(err.response?.data);
       setError(err.response?.data?.message || "Invalid credentials.");
     } finally {
       setLoading(false);

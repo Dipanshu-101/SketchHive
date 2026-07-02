@@ -3,8 +3,8 @@
 import { PageShell, GlassPanel, Input, Button } from "@repo/ui";
 import { Pencil, Users } from "lucide-react";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { createRoom } from "@/features/rooms/services/rooms.service";
 
 export default function RoomsPage() {
     const [roomCode, setRoomCode] = useState("");
@@ -25,24 +25,10 @@ export default function RoomsPage() {
 
     
 const handleCreateRoom = async () => {
+  // Auth header is attached by the api-client interceptor (§9).
   try {
-    const token = localStorage.getItem("token");
-
-    const response = await axios.post(
-      "http://localhost:3001/room",
-      {
-        name: roomName,
-      },
-      {
-        headers: {
-          Authorization: token,
-        },
-      }
-    );
-
-    console.log(response.data);
-
-    router.push(`/canvas/${response.data.roomId}`);
+    const { roomId } = await createRoom({ name: roomName });
+    router.push(`/canvas/${roomId}`);
   } catch (error: any) {
     console.log(error.response?.data);
   }
