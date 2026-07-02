@@ -1,5 +1,5 @@
 /**
- * Local-identity helpers.
+ * Local-identity helpers (cross-feature — used by chat AND the socket client).
  *
  * Sender identity is SERVER-AUTHORITATIVE: the ws-backend derives senderId and
  * senderName from the JWT, never from the client. The client still needs to
