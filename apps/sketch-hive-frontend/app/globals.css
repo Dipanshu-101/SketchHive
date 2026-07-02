@@ -207,11 +207,147 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Shared keyframes (referenced by motion primitives + component fallbacks)
+   Motion system — keyframes + entrance utilities (§4)
+
+   Pure CSS (no JS animation library). Timings/easings mirror the @theme motion
+   tokens. Entrance utilities animate ONCE on mount; hover/press live on the
+   components themselves. Everything respects prefers-reduced-motion.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Idle bee bob + slight rotate — illustration-only zones (§4, §13). */
+@keyframes beeFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+/* Bee wing flutter. */
+@keyframes beeWing {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.82);
+  }
+}
+
+/* Flight-path self-draws in. */
+@keyframes flightDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Soft honey pulse — subtle attention on a live/active indicator. */
+@keyframes honeyPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ── Entrance utilities (add class; optional --delay via inline style) ── */
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn var(--duration-slow) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-scale-in {
+  opacity: 0;
+  animation: scaleIn var(--duration-medium) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-slide-in-right {
+  opacity: 0;
+  animation: slideInRight var(--duration-medium) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Reusable hover-lift for cards/tiles. */
+.hover-lift {
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Accessibility: honor reduced-motion — kill all decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-in-right {
+    opacity: 1;
   }
 }

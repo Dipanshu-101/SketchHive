@@ -43,6 +43,14 @@
       "types": "./src/empty-state.tsx",
       "default": "./src/empty-state.tsx"
     },
+    "./bee-mascot": {
+      "types": "./src/bee-mascot.tsx",
+      "default": "./src/bee-mascot.tsx"
+    },
+    "./flight-path": {
+      "types": "./src/flight-path.tsx",
+      "default": "./src/flight-path.tsx"
+    },
     "./water-ripple-bg": {
       "types": "./src/water-ripple-bg.tsx",
       "default": "./src/water-ripple-bg.tsx"
