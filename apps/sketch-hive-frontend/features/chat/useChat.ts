@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChatMessageView } from "@repo/chat-ui";
-import { getLocalUserId } from "./auth";
+import { getLocalUserId } from "@/lib/auth";
 import { useChatHistory } from "./hooks/useChatHistory";
 import { useChatSocket } from "./hooks/useChatSocket";
 import { useConnectionState } from "./hooks/useConnectionState";

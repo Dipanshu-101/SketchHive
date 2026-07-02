@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
-import { useChat, type UseChatValue } from "./useChat";
+import { useChat, type UseChatValue } from "../useChat";
 
 /**
  * ChatProvider — runs the chat engine (useChat) exactly ONCE per room and shares

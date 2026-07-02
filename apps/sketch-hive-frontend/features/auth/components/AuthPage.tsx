@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { PageShell, GlassPanel, Input, Button } from "@repo/ui";
+import { signin, signup } from "@/features/auth/services/auth.service";
 
 /* ─────────────────────────────────────────
    Main AuthPage component

@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import axios from "axios";
-import { HTTP_BACKEND_URL } from "@/config";
+import { fetchRoomMessages } from "../services/chat.service";
 import type { ChatMessageDTO } from "../types";
 
 export type HistoryStatus = "loading" | "ready" | "error";
@@ -39,13 +38,10 @@ export function useChatHistory(roomId: string): UseChatHistoryResult {
     // already "loading", and on a manual reload we keep the previous transcript
     // (or error) on screen until the refetch resolves — avoiding a synchronous
     // setState in the effect body and a flash of the loading skeleton.
-    axios
-      .get<{ messages: ChatMessageDTO[] }>(
-        `${HTTP_BACKEND_URL}/rooms/${roomId}/messages`
-      )
-      .then((res) => {
+    fetchRoomMessages(roomId)
+      .then((msgs) => {
         if (cancelled) return;
-        setMessages(res.data.messages ?? []);
+        setMessages(msgs);
         setStatus("ready");
       })
       .catch(() => {

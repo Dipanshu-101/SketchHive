@@ -16,7 +16,7 @@ import {
   Type,
   Undo2,
 } from "lucide-react";
-import { IconButton } from "./IconsButton";
+import { IconButton } from "./IconButton";
 import { Game } from "@/draw/Game";
 import { Tool } from "@/draw/types";
 
