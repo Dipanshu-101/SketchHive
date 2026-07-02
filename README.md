@@ -270,12 +270,6 @@ For major changes, please open an issue first to discuss what you'd like to chan
 
 <br />
 
-## <a name="license">📜 License</a>
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-<br />
-
 <div align="center">
 
   <h3>If you find SketchHive useful, consider giving it a ⭐</h3>
