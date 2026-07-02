@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { token, cssVar } from "./tokens";
 
 export type InputType =
   | "text"
@@ -16,7 +17,7 @@ export interface InputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  error?: string; // if set, shows red border + error message below
+  error?: string; // if set, shows danger border + error message below
   disabled?: boolean;
   autoComplete?: string;
   name?: string;
@@ -37,16 +38,16 @@ export function Input({
 }: InputProps) {
   const [focused, setFocused] = useState(false);
 
-  let border = "1px solid rgba(255,255,255,0.12)";
-  let boxShadow = "0 1px 0 rgba(255,255,255,0.04) inset";
+  let border = `1px solid ${cssVar.color.border}`;
+  let boxShadow = "none";
 
+  // default → focus (honey ring) → error — all sourced from tokens (§2).
   if (error) {
-    border = "1px solid rgba(239,68,68,0.5)";
-    boxShadow = "0 0 0 3px rgba(239,68,68,0.12)";
+    border = `1px solid ${cssVar.color.danger}`;
+    boxShadow = `0 0 0 3px color-mix(in srgb, ${cssVar.color.danger} 18%, transparent)`;
   } else if (focused) {
-    border = "1px solid rgba(59,130,246,0.6)";
-    boxShadow =
-      "0 0 0 3px rgba(59,130,246,0.15), 0 1px 0 rgba(255,255,255,0.06) inset";
+    border = `1px solid ${cssVar.color.honey500}`;
+    boxShadow = cssVar.shadow.glowHoney;
   }
 
   return (
@@ -60,7 +61,7 @@ export function Input({
             fontWeight: 500,
             letterSpacing: "0.04em",
             textTransform: "uppercase",
-            color: "rgba(180,210,255,0.5)",
+            color: cssVar.color.textMuted,
             marginBottom: 8,
           }}
         >
@@ -81,18 +82,17 @@ export function Input({
         style={{
           width: "100%",
           padding: "13px 16px",
-          borderRadius: 11,
+          borderRadius: token.radius.md,
           fontSize: 14,
-          background: "rgba(255,255,255,0.05)",
+          fontFamily: cssVar.font.sans,
+          background: cssVar.color.bgElevated,
           border,
-          color: "#fff",
+          color: cssVar.color.textPrimary,
           outline: "none",
           boxShadow,
-          transition: "border-color 0.15s, box-shadow 0.15s",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+          transition: `border-color ${cssVar.duration.base}, box-shadow ${cssVar.duration.base}`,
           boxSizing: "border-box",
-          opacity: disabled ? 0.6 : 1,
+          opacity: disabled ? 0.4 : 1,
           cursor: disabled ? "not-allowed" : "text",
         }}
       />
@@ -100,7 +100,7 @@ export function Input({
         <div
           style={{
             fontSize: 12,
-            color: "rgba(252,165,165,0.85)",
+            color: cssVar.color.danger,
             marginTop: 6,
           }}
         >
@@ -108,10 +108,10 @@ export function Input({
         </div>
       )}
       <style>{`
-        input::placeholder { color: rgba(180,200,240,0.25); }
+        input::placeholder { color: var(--color-text-muted); opacity: 0.7; }
         input:-webkit-autofill {
-          -webkit-box-shadow: 0 0 0 100px rgba(15,20,40,0.95) inset !important;
-          -webkit-text-fill-color: #fff !important;
+          -webkit-box-shadow: 0 0 0 100px var(--color-bg-elevated) inset !important;
+          -webkit-text-fill-color: var(--color-text-primary) !important;
         }
       `}</style>
     </div>

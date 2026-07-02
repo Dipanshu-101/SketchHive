@@ -1,48 +1,159 @@
-/* ── SketchHive Background System ── */
-:root {
-  --bg-base:    #07080f;   /* deepest canvas */
-  --bg-card:    #0d1220;   /* card surfaces  */
-  --glow-teal:  #22c5b4;
-  --glow-blue:  #3b63d2;
-  --glow-deep:  #123c78;
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SketchHive V2 — Design Tokens (single source of truth)
+
+   Tailwind v4 reads @theme natively and generates utilities from these vars
+   (e.g. --color-honey-500 → bg-honey-500 / text-honey-500). Every value also
+   remains available as a raw CSS variable (var(--color-honey-500)) so the
+   inline-style components in packages/ui can consume the same tokens.
+
+   RULE: no raw hex/rgba in feature code or reusable components — reference a
+   token. New colors are added HERE, not inline. (See §2, §13 of the strategy.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Surface (near-black, not pure #000) ── */
+  --color-bg-base: #0a0a0f; /* deepest — page background, sidebar (flat surface) */
+  --color-bg-elevated: #131318; /* cards, form panels (elevated surface) */
+  --color-bg-overlay: #1b1b22; /* toolbars, modals, menus (floating glass base) */
+
+  /* ── Borders ── */
+  --color-border: #26262e;
+  --color-border-hover: #35353f;
+  --color-border-strong: #43434f;
+
+  /* ── Brand — honey-yellow, used sparingly for CTAs + active states ── */
+  --color-honey-400: #ffb84d; /* hover */
+  --color-honey-500: #f5a623; /* primary */
+  --color-honey-600: #d68c10; /* active / pressed */
+  --color-honey-glow: #f5a62333; /* focus rings, glass tint */
+
+  /* ── Text ── */
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #6b6b76;
+  --color-text-on-brand: #1a1204; /* text sitting on a honey fill */
+
+  /* ── Semantic ── */
+  --color-success: #34d399;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
+  --color-warning: #fbbf24;
+
+  /* ── Radius — the "premium" feel lives here as much as color ── */
+  --radius-sm: 8px; /* inputs, badges, tags */
+  --radius-md: 12px; /* buttons, small cards */
+  --radius-lg: 16px; /* panels, modals */
+  --radius-xl: 24px; /* hero cards, auth panels */
+
+  /* ── Elevation — soft, colored-black shadows, not gray ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow-honey: 0 0 0 3px var(--color-honey-glow);
+
+  /* ── Motion — durations + easings (shared by CSS + Framer primitives) ── */
+  --duration-fast: 80ms; /* press / tactile feedback */
+  --duration-base: 150ms; /* hover, most micro-states */
+  --duration-medium: 250ms; /* panels sliding */
+  --duration-slow: 300ms; /* content entering (fadeInUp) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Typography families ── */
+  --font-sans:
+    var(--font-geist-sans), "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "SFMono-Regular", Consolas, monospace;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Base layer
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 body {
-  background-color: var(--bg-base);
-  color: #e8edf5;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
   min-height: 100vh;
   cursor: none;
 }
 
-/* Ambient background layer — sits behind everything */
+/* Monospace is reserved for on-canvas content ONLY (the user's drawn text),
+   never for UI chrome. Opt in explicitly with .font-canvas. (§4) */
+.font-canvas {
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Surface system — three explicit surfaces, never mixed arbitrarily (§2 / §5)
+
+   1. .surface-flat     — page bg, sidebar. No shadow. Sits in static layout.
+   2. .surface-elevated — cards, form panels. Solid + shadow + border.
+   3. .surface-glass    — toolbars, modals, minimap. Floats OVER dynamic content.
+
+   Appropriateness rule: glass = floats over dynamic content,
+                         solid = sits in static layout.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.surface-flat {
+  background: var(--color-bg-base);
+}
+
+.surface-elevated {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.surface-glass {
+  background: color-mix(in srgb, var(--color-bg-overlay) 85%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Legacy alias — some existing markup still references `.glass`.
+   Points at the canonical floating-glass surface so nothing breaks. */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-bg-overlay) 85%, transparent);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 20px;
-  box-shadow:
-    0 8px 48px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ambient background layer (existing brand chrome — kept, retokenized)
+
+   NOTE (tech debt): this is the legacy blue/teal water-glow motif. The
+   strategy's brand motif is the dashed bee flight-path; replacing this belongs
+   to the later "bee brand-identity pass", not Phase 1. Colors now reference
+   tokens so it moves in lockstep with the palette.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 .bg-canvas {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: var(--bg-base);
+  background: var(--color-bg-base);
   overflow: hidden;
 }
 
 .bg-canvas::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 700px;
   height: 500px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(34, 197, 180, 0.16) 0%,
+    var(--color-honey-glow) 0%,
     transparent 70%
   );
   top: -120px;
@@ -52,14 +163,14 @@ body {
 }
 
 .bg-canvas::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 560px;
   height: 440px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(59, 99, 210, 0.20) 0%,
+    var(--color-honey-glow) 0%,
     transparent 70%
   );
   top: 60px;
@@ -68,7 +179,6 @@ body {
   pointer-events: none;
 }
 
-/* Third glow — bottom centre */
 .bg-glow-bottom {
   position: absolute;
   width: 480px;
@@ -76,7 +186,7 @@ body {
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(18, 60, 120, 0.25) 0%,
+    var(--color-honey-glow) 0%,
     transparent 70%
   );
   bottom: -60px;
@@ -94,4 +204,14 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 200px 200px;
   pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Shared keyframes (referenced by motion primitives + component fallbacks)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
