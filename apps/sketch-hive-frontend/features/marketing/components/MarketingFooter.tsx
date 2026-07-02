@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Github } from "lucide-react";
+import { Code2 } from "lucide-react";
 import { BeeMark } from "@repo/icons";
 import { cssVar } from "@repo/ui/tokens";
 
@@ -174,7 +174,7 @@ export function MarketingFooter() {
               (e.currentTarget.style.color = cssVar.color.textMuted)
             }
           >
-            <Github size={18} />
+            <Code2 size={18} />
           </a>
         </div>
       </div>

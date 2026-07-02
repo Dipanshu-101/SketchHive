@@ -13,7 +13,6 @@ export function PageShell({ children }: { children: ReactNode }) {
       style={{
         minHeight: "100vh",
         background: cssVar.color.bgBase,
-        cursor: "none",
         position: "relative",
       }}
     >
