@@ -77,7 +77,15 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
-  cursor: none;
+  /* Note: the old global `cursor: none` was tied to the legacy water-ripple
+     custom cursor. The drawing engine sets its own cursors on the canvas
+     element (grab/crosshair/text/cell), so a normal system cursor everywhere
+     else is correct — an invisible cursor off-canvas was a UX bug. */
+}
+
+/* Smooth in-page anchor scrolling for the marketing nav links. */
+html {
+  scroll-behavior: smooth;
 }
 
 /* Monospace is reserved for on-canvas content ONLY (the user's drawn text),
