@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { cssVar } from "./tokens";
 import { WaterRippleBg } from "./water-ripple-bg";
 
 /* ─────────────────────────────────────────
@@ -11,7 +12,7 @@ export function PageShell({ children }: { children: ReactNode }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "#000",
+        background: cssVar.color.bgBase,
         cursor: "none",
         position: "relative",
       }}

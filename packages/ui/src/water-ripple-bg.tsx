@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { token } from "./tokens";
 
 /* ─────────────────────────────────────────
    Water-ripple canvas background
+
+   TECH DEBT: this is the legacy blue/teal water effect. The strategy's brand
+   motif is the dashed bee flight-path; replacing this belongs to the later bee
+   brand-identity pass (§12), not Phase 1. The blue rgba fills below are 2D
+   canvas paint strings (can't use CSS vars) and are intentionally left for that
+   pass. Only the opaque base fill is tokenized so it matches the page bg.
 ───────────────────────────────────────── */
 export function WaterRippleBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,7 +51,7 @@ export function WaterRippleBg() {
       raf = requestAnimationFrame(draw);
       const now = performance.now() / 1000;
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = token.color.bgBase;
       ctx.fillRect(0, 0, W, H);
 
       const { x: mx, y: my, active } = mouse.current;

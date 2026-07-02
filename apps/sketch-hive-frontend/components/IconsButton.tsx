@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { cssVar } from "@repo/ui/tokens";
 
 export function IconButton({
   icon,
@@ -27,8 +28,8 @@ export function IconButton({
         borderRadius: 8,
         border: "none",
         cursor: "pointer",
-        background: activated ? "#4f8cff" : "transparent",
-        color: activated ? "#ffffff" : "#c9c9d4",
+        background: activated ? cssVar.color.honey500 : "transparent",
+        color: activated ? cssVar.color.textOnBrand : cssVar.color.textSecondary,
         transition: "background 120ms ease",
       }}
     >
