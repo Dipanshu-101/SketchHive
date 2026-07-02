@@ -29,6 +29,12 @@ export type {
 export { EmptyState } from "./empty-state";
 export type { EmptyStateProps } from "./empty-state";
 
+export { BeeMascot } from "./bee-mascot";
+export type { BeeMascotProps, BeePose } from "./bee-mascot";
+
+export { FlightPath } from "./flight-path";
+export type { FlightPathProps } from "./flight-path";
+
 // ── Surfaces & chrome ──
 export { WaterRippleBg } from "./water-ripple-bg";
 export { GlassPanel } from "./glass-panel";
