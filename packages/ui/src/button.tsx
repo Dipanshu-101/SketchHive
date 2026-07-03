@@ -50,10 +50,16 @@ const sizeStyles: Record<ButtonSize, React.CSSProperties> = {
   lg: { padding: "13px 28px", fontSize: 15, borderRadius: token.radius.md },
 };
 
-/* Per-variant hover overrides — background lightens one step, no movement (§2). */
+/* Per-variant hover overrides — background lightens one step, no movement (§2).
+   Use the `border` shorthand (not `borderColor`) to match the base variant
+   styles — mixing shorthand + non-shorthand for the same property across
+   rerenders triggers a React styling warning. */
 const variantHover: Record<ButtonVariant, React.CSSProperties> = {
   primary: { background: cssVar.color.honey400 },
-  ghost: { background: cssVar.color.bgOverlay, borderColor: cssVar.color.borderHover },
+  ghost: {
+    background: cssVar.color.bgOverlay,
+    border: `1px solid ${cssVar.color.borderHover}`,
+  },
   outline: { background: cssVar.color.bgElevated },
   danger: { background: cssVar.color.bgElevated },
 };

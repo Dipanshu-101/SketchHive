@@ -35,16 +35,48 @@ const LINKS = [
   { href: "#docs", label: "Docs" },
 ];
 
-const SCROLL_THRESHOLD = 60; // px scrolled before shrinking
+// Hysteresis thresholds: shrink once scrolled DOWN past SHRINK_AT, but only
+// expand again once scrolled back UP past EXPAND_AT. The 40px dead zone between
+// them stops the state flip-flopping when the scroll position jitters near the
+// boundary — which happens because the nav is `position: sticky` in flow, so
+// its own height change on shrink/expand nudges scrollY back across a single
+// threshold and re-triggers the opposite state (a feedback loop).
+const SHRINK_AT = 80; // scrolling down: shrink past here
+const EXPAND_AT = 40; // scrolling up: expand only once back above here
+
+// Full-state max width; the shrunk state is exactly 70% of this (see below).
+const FULL_WIDTH = 1200;
 
 export function MarketingNav() {
   const [shrunk, setShrunk] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setShrunk(window.scrollY > SCROLL_THRESHOLD);
-    onScroll(); // sync initial state (e.g. on reload mid-page)
+    let raf = 0;
+
+    const evaluate = () => {
+      raf = 0;
+      const y = window.scrollY;
+      // Functional update + hysteresis: only flip when clearly past the far
+      // edge of the dead zone; inside [EXPAND_AT, SHRINK_AT] the state holds.
+      setShrunk((prev) => {
+        if (!prev && y > SHRINK_AT) return true;
+        if (prev && y < EXPAND_AT) return false;
+        return prev;
+      });
+    };
+
+    const onScroll = () => {
+      // Batch reads to a single rAF so rapid scroll events near the threshold
+      // don't each trigger a state re-check.
+      if (raf === 0) raf = requestAnimationFrame(evaluate);
+    };
+
+    evaluate(); // sync initial state (e.g. on reload mid-page)
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf !== 0) cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
@@ -63,19 +95,28 @@ export function MarketingNav() {
         data-shrunk={shrunk}
         className="mkt-nav"
         style={{
-          // The bar sizes to its content and is centered by the wrapper. In the
-          // full state its max-width lets it span the layout; in the shrunk
-          // state the (removed) links let it collapse to a compact pill. The
-          // max-width transition is what makes the WIDTH visibly animate.
+          // The bar is `width: 100%` capped by max-width and centered by the
+          // wrapper. Full state spans the layout (FULL_WIDTH); shrunk state is
+          // exactly 70% of that full width (NOT shrink-wrapped to content) — any
+          // extra room over what the logo + buttons need distributes as space
+          // within the bar. The max-width transition animates the WIDTH.
           width: "100%",
-          maxWidth: shrunk ? 440 : 1200,
+          maxWidth: shrunk ? FULL_WIDTH * 0.7 : FULL_WIDTH,
           borderRadius: cssVar.radius.lg,
           background: `color-mix(in srgb, ${cssVar.color.bgBase} 68%, transparent)`,
           backdropFilter: "blur(18px) saturate(150%)",
           WebkitBackdropFilter: "blur(18px) saturate(150%)",
           border: `1px solid ${cssVar.color.border}`,
           boxShadow: cssVar.shadow.md,
-          padding: shrunk ? "0 18px" : "0 24px",
+          // Same horizontal padding in both states so the logo's left inset and
+          // the actions' right inset match the original (full) bar exactly.
+          padding: "0 24px",
+          // Protect the rounded-pill shape if content ever exceeds the shrunk
+          // max-width (e.g. localized labels). `clip` + a clip-margin keeps the
+          // pill contained WITHOUT clipping the buttons' focus-ring / soft
+          // shadow bleed (a plain `overflow: hidden` would eat the focus ring).
+          overflow: "clip",
+          overflowClipMargin: "10px",
           transition: `max-width ${cssVar.duration.medium} ${cssVar.ease.out}, padding ${cssVar.duration.medium} ${cssVar.ease.out}`,
         }}
       >
@@ -83,12 +124,17 @@ export function MarketingNav() {
           style={{
             display: "flex",
             alignItems: "center",
-            // Full: spread across the bar. Shrunk: sit close together so the
-            // pill reads as compact rather than a stretched strip.
-            justifyContent: shrunk ? "center" : "space-between",
-            gap: shrunk ? 20 : 16,
-            // height compaction — animated alongside width
-            height: shrunk ? 54 : 72,
+            // space-between in BOTH states: logo pinned to the left inner edge,
+            // actions to the right inner edge — the extra room sits between them,
+            // so the edge spacing matches the original (full) bar exactly.
+            justifyContent: "space-between",
+            // Zero gap when shrunk so the collapsed (zero-width) links element
+            // contributes no gap footprint; space-between handles the spacing.
+            gap: shrunk ? 0 : 16,
+            // height compaction — animated alongside width. Scaled to ~80% of
+            // the previous heights (72→58, 54→44) while preserving the
+            // full-to-shrunk ratio.
+            height: shrunk ? 44 : 58,
             transition: `height ${cssVar.duration.medium} ${cssVar.ease.out}, gap ${cssVar.duration.medium} ${cssVar.ease.out}`,
           }}
         >
@@ -108,8 +154,8 @@ export function MarketingNav() {
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: shrunk ? 32 : 38,
-                height: shrunk ? 32 : 38,
+                width: shrunk ? 26 : 30,
+                height: shrunk ? 26 : 30,
                 borderRadius: cssVar.radius.md,
                 background: cssVar.color.honey500,
                 color: cssVar.color.textOnBrand,
@@ -117,7 +163,7 @@ export function MarketingNav() {
                 transition: `width ${cssVar.duration.medium} ${cssVar.ease.out}, height ${cssVar.duration.medium} ${cssVar.ease.out}`,
               }}
             >
-              <BeeMark size={shrunk ? 19 : 22} />
+              <BeeMark size={shrunk ? 15 : 18} />
             </span>
             <span
               style={{
@@ -201,13 +247,14 @@ export function MarketingNav() {
           .mkt-nav-links { display: flex !important; }
         }
 
-        /* SHRINKING (scroll down): fade links out FAST and FIRST, then let the
-           width/max-width collapse — so the bar narrows into content that has
-           already faded, never clipping visible text. */
+        /* SHRINKING (scroll down): fade links out FIRST (over duration.base),
+           and only start collapsing max-width AFTER that fade completes (delay
+           = duration.base) — so the bar narrows into content that has already
+           fully faded, never clipping visible text. */
         .mkt-nav-links {
           transition:
             opacity ${cssVar.duration.base} ${cssVar.ease.out},
-            max-width ${cssVar.duration.medium} ${cssVar.ease.out} ${cssVar.duration.fast};
+            max-width ${cssVar.duration.medium} ${cssVar.ease.out} ${cssVar.duration.base};
         }
 
         /* EXPANDING (scroll to top): reverse — widen the bar FIRST, then fade

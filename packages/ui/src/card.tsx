@@ -54,7 +54,9 @@ export function Card({
   const hoverStyle: React.CSSProperties =
     hover && hovered
       ? {
-          borderColor: cssVar.color.honey500,
+          // Use the `border` shorthand to match `variantBase` — mixing it with
+          // `borderColor` across rerenders triggers a React styling warning.
+          border: `1px solid ${cssVar.color.honey500}`,
           boxShadow: `${base.boxShadow}, ${cssVar.shadow.glowHoney}`,
           transform: "translateY(-2px)",
         }
