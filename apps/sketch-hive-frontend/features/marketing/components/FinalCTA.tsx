@@ -30,7 +30,7 @@ export function FinalCTA() {
           position: "relative",
           overflow: "hidden",
           padding: "clamp(36px, 5vw, 56px) clamp(28px, 4vw, 56px)",
-          borderRadius: cssVar.radius.xl,
+          borderRadius: cssVar.radius.lg,
           background: `radial-gradient(120% 160% at 50% -20%, ${cssVar.color.honeyGlow} 0%, transparent 55%), ${cssVar.color.bgElevated}`,
           border: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 55%, ${cssVar.color.border})`,
           boxShadow: `${cssVar.shadow.lg}, 0 0 60px color-mix(in srgb, ${cssVar.color.honey500} 12%, transparent)`,
