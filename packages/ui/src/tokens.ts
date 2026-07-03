@@ -39,6 +39,21 @@ export const cssVar = {
     danger: "var(--color-danger)",
     info: "var(--color-info)",
     warning: "var(--color-warning)",
+
+    // Board / paper surface (light whiteboard in mockups).
+    boardPaper: "var(--color-board-paper)",
+    boardPanel: "var(--color-board-panel)",
+    boardLine: "var(--color-board-line)",
+    boardDot: "var(--color-board-dot)",
+    boardInk: "var(--color-board-ink)",
+    boardInkSoft: "var(--color-board-ink-soft)",
+    noteHoney: "var(--color-note-honey)",
+    noteMint: "var(--color-note-mint)",
+    noteLilac: "var(--color-note-lilac)",
+    noteSky: "var(--color-note-sky)",
+    noteRose: "var(--color-note-rose)",
+    cursorA: "var(--color-cursor-a)",
+    cursorB: "var(--color-cursor-b)",
   },
   radius: {
     sm: "var(--radius-sm)",

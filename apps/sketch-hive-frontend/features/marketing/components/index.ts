@@ -8,4 +8,6 @@ export { Testimonials } from "./Testimonials";
 export { FinalCTA } from "./FinalCTA";
 export { MarketingFooter } from "./MarketingFooter";
 export { WhiteboardMockup } from "./WhiteboardMockup";
+export { RoadmapMockup } from "./RoadmapMockup";
+export { FloatingBee } from "./FloatingBee";
 export { SectionHeading } from "./SectionHeading";

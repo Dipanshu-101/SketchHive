@@ -1,52 +1,60 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Check, ArrowUpRight } from "lucide-react";
-import { Button, AvatarGroup } from "@repo/ui";
+import { Button } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
-import { WhiteboardMockup } from "./WhiteboardMockup";
+import { RoadmapMockup } from "./RoadmapMockup";
+import { FloatingBee } from "./FloatingBee";
+import { fadeUp, staggerParent, revealOnce } from "../motion";
 
 const POINTS = [
-  "Invite your whole team with a single link",
-  "Work together live — cursors show who's where",
-  "Never lose an idea; every board autosaves",
-  "Chat alongside the canvas without switching apps",
-];
-
-const TEAM = [
-  { name: "Maya Chen" },
-  { name: "Arjun Rao" },
-  { name: "Lena Ford" },
-  { name: "Tom Ire" },
-  { name: "Sara Kim" },
+  "Invite your team with a simple link",
+  "Work together in real-time",
+  "Never lose your ideas",
+  "Export and share with ease",
 ];
 
 /**
- * CollaborateShowcase — reversed asymmetric section (mockup left, copy right)
- * that tells the "built for teams" story. Reuses <WhiteboardMockup> and the
- * design-system <AvatarGroup> (§6 reuse).
+ * CollaborateShowcase — reference showcase: roadmap canvas on the LEFT, copy on
+ * the RIGHT ("COLLABORATE BETTER" → "Built for teams that create together" →
+ * honey-check bullets → CTA). A bee carrying a shape sits at the lower-left, as
+ * in the reference.
  */
 export function CollaborateShowcase() {
   return (
     <section
       id="collaborate"
       style={{
+        position: "relative",
         maxWidth: 1200,
         margin: "0 auto",
-        padding: "clamp(56px, 8vw, 96px) 24px",
+        padding: "clamp(48px, 7vw, 88px) 32px",
         scrollMarginTop: 88,
       }}
     >
+      <FloatingBee
+        carry="sphere"
+        size={70}
+        delay={0.5}
+        style={{ position: "absolute", bottom: 40, left: 8 }}
+        className="mkt-showcase-bee"
+      />
+
       <div className="mkt-showcase-grid">
-        <div
+        <motion.div
+          variants={fadeUp}
+          {...revealOnce}
           className="mkt-showcase-visual"
           style={{ display: "flex", justifyContent: "center" }}
         >
-          <WhiteboardMockup title="Project Roadmap" variant="roadmap" />
-        </div>
+          <RoadmapMockup />
+        </motion.div>
 
-        <div>
-          <span
+        <motion.div variants={staggerParent(0.1)} {...revealOnce}>
+          <motion.span
+            variants={fadeUp}
             style={{
               display: "inline-block",
               fontSize: 12,
@@ -57,9 +65,10 @@ export function CollaborateShowcase() {
               marginBottom: 14,
             }}
           >
-            Collaborate better
-          </span>
-          <h2
+            Collaborate Better
+          </motion.span>
+          <motion.h2
+            variants={fadeUp}
             style={{
               fontSize: "clamp(26px, 3.6vw, 38px)",
               fontWeight: 800,
@@ -69,11 +78,12 @@ export function CollaborateShowcase() {
               margin: "0 0 16px",
             }}
           >
-            Built for teams that
+            Built for teams
             <br />
-            create together
-          </h2>
-          <p
+            that create together
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
             style={{
               fontSize: 16,
               lineHeight: 1.65,
@@ -82,27 +92,29 @@ export function CollaborateShowcase() {
               maxWidth: 460,
             }}
           >
-            From the first sticky note to the final handoff, SketchHive keeps
-            everyone aligned and moving in the same direction.
-          </p>
+            From brainstorming sessions to project planning, SketchHive helps
+            teams stay aligned and productive with real-time collaboration.
+          </motion.p>
 
-          <ul
+          <motion.ul
+            variants={staggerParent(0.06)}
             style={{
               listStyle: "none",
               padding: 0,
               margin: "0 0 28px",
               display: "flex",
               flexDirection: "column",
-              gap: 12,
+              gap: 13,
             }}
           >
             {POINTS.map((p) => (
-              <li
+              <motion.li
                 key={p}
+                variants={fadeUp}
                 style={{
                   display: "flex",
-                  alignItems: "flex-start",
-                  gap: 10,
+                  alignItems: "center",
+                  gap: 11,
                   fontSize: 15,
                   color: cssVar.color.textPrimary,
                 }}
@@ -110,40 +122,31 @@ export function CollaborateShowcase() {
                 <span
                   style={{
                     flexShrink: 0,
-                    marginTop: 1,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: 20,
-                    height: 20,
+                    width: 22,
+                    height: 22,
                     borderRadius: "50%",
-                    background: cssVar.color.honeyGlow,
-                    color: cssVar.color.honey500,
+                    background: cssVar.color.honey500,
+                    color: cssVar.color.textOnBrand,
                   }}
                 >
-                  <Check size={12} strokeWidth={3} />
+                  <Check size={13} strokeWidth={3} />
                 </span>
                 {p}
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
 
-          <div
-            style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}
-          >
+          <motion.div variants={fadeUp}>
             <Link href="/signup" style={{ textDecoration: "none" }}>
               <Button variant="primary" rightIcon={<ArrowUpRight size={16} />}>
                 Create your team board
               </Button>
             </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <AvatarGroup users={TEAM} size="sm" max={4} />
-              <span style={{ fontSize: 13, color: cssVar.color.textMuted }}>
-                joined this week
-              </span>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       <style>{`
@@ -153,8 +156,10 @@ export function CollaborateShowcase() {
           gap: 48px;
           align-items: center;
         }
+        .mkt-showcase-bee { display: none; }
         @media (min-width: 940px) {
-          .mkt-showcase-grid { grid-template-columns: 1fr 1fr; gap: 56px; }
+          .mkt-showcase-grid { grid-template-columns: 1.1fr 0.9fr; gap: 56px; }
+          .mkt-showcase-bee { display: block; }
         }
       `}</style>
     </section>

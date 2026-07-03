@@ -1,120 +1,128 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   Infinity as InfinityIcon,
-  PenTool,
-  ShieldCheck,
+  Bell,
+  Lock,
   MonitorSmartphone,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cssVar } from "@repo/ui/tokens";
 import { SectionHeading } from "./SectionHeading";
+import { FloatingBee } from "./FloatingBee";
+import { fadeUp, staggerParent, revealOnce } from "../motion";
 
 interface Feature {
   icon: ReactNode;
+  tint: string;
   title: string;
   desc: string;
 }
 
+// Icon tints echo the reference's multi-colored feature glyphs, drawn from the
+// semantic + note token palette (no raw literals).
 const FEATURES: Feature[] = [
   {
-    icon: <Users size={20} />,
-    title: "Real-time collaboration",
-    desc: "See every teammate's strokes the instant they happen — no refresh, no lag, no lost work.",
+    icon: <Users size={22} />,
+    tint: cssVar.color.cursorA,
+    title: "Real-time Collaboration",
+    desc: "See changes instantly as your team draws and brainstorms together.",
   },
   {
-    icon: <InfinityIcon size={20} />,
-    title: "Infinite canvas",
-    desc: "Pan and zoom forever. Your ideas never run out of room to grow.",
+    icon: <InfinityIcon size={22} />,
+    tint: cssVar.color.success,
+    title: "Infinite Canvas",
+    desc: "Limitless space to bring your ideas to life without boundaries.",
   },
   {
-    icon: <PenTool size={20} />,
-    title: "Smart tools",
-    desc: "Shapes, arrows, sticky notes, freehand and text — everything a session needs.",
+    icon: <Bell size={22} />,
+    tint: cssVar.color.honey500,
+    title: "Smart Tools",
+    desc: "Everything you need — shapes, text, sticky notes, and more.",
   },
   {
-    icon: <ShieldCheck size={20} />,
-    title: "Secure & private",
-    desc: "Your boards stay yours. Access is scoped to your room and your team.",
+    icon: <Lock size={22} />,
+    tint: cssVar.color.danger,
+    title: "Secure & Private",
+    desc: "Your data is encrypted and your boards are always in your control.",
   },
   {
-    icon: <MonitorSmartphone size={20} />,
-    title: "Works everywhere",
-    desc: "Jump in from any device and pick up exactly where the hive left off.",
+    icon: <MonitorSmartphone size={22} />,
+    tint: cssVar.color.info,
+    title: "Cross Platform",
+    desc: "Access your boards from anywhere, anytime, on any device.",
   },
 ];
 
-/** Hexagon-framed icon — the hive motif, reused across feature tiles. */
-function HexIcon({ children }: { children: ReactNode }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 48,
-        height: 48,
-        color: cssVar.color.honey500,
-        background: cssVar.color.honeyGlow,
-        border: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 28%, transparent)`,
-        // hexagon clip
-        clipPath:
-          "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 export function Features() {
+  const reduce = useReducedMotion();
+
   return (
     <section
       id="features"
       style={{
+        position: "relative",
         maxWidth: 1200,
         margin: "0 auto",
-        padding: "clamp(56px, 8vw, 96px) 24px",
+        padding: "clamp(48px, 7vw, 88px) 32px",
         scrollMarginTop: 88,
       }}
     >
-      <SectionHeading
-        eyebrow="Why SketchHive"
-        title="Everything you need to think together"
-        subtitle="A focused toolkit that gets out of the way, so the ideas — not the software — take center stage."
+      {/* bee near the section heading (reference) */}
+      <FloatingBee
+        carry="sphere"
+        size={64}
+        delay={0.4}
+        style={{ position: "absolute", top: 30, right: 20 }}
+        className="mkt-features-bee"
       />
 
-      <div
+      <SectionHeading
+        eyebrow="Why SketchHive?"
+        title="Everything you need to collaborate visually"
+      />
+
+      <motion.div
         className="mkt-feature-grid"
-        style={{ marginTop: "clamp(40px, 5vw, 64px)" }}
+        style={{ marginTop: "clamp(36px, 4vw, 56px)" }}
+        variants={staggerParent(0.08)}
+        {...revealOnce}
       >
-        {FEATURES.map((f, i) => (
-          <article
+        {FEATURES.map((f) => (
+          <motion.article
             key={f.title}
-            className="hover-lift animate-fade-in-up"
+            variants={fadeUp}
+            whileHover={reduce ? undefined : { y: -6 }}
+            transition={{ duration: 0.18 }}
             style={{
-              padding: 24,
+              padding: 22,
               borderRadius: cssVar.radius.lg,
               background: cssVar.color.bgElevated,
               border: `1px solid ${cssVar.color.border}`,
               boxShadow: cssVar.shadow.md,
-              // @ts-expect-error CSS custom property for staggered entrance
-              "--delay": `${i * 60}ms`,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = cssVar.color.honey500;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = cssVar.color.border;
             }}
           >
-            <div style={{ marginBottom: 18 }}>
-              <HexIcon>{f.icon}</HexIcon>
-            </div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 46,
+                height: 46,
+                marginBottom: 18,
+                borderRadius: cssVar.radius.md,
+                color: f.tint,
+                background: `color-mix(in srgb, ${f.tint} 14%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${f.tint} 30%, transparent)`,
+              }}
+            >
+              {f.icon}
+            </span>
             <h3
               style={{
-                fontSize: 16,
+                fontSize: 15.5,
                 fontWeight: 700,
                 letterSpacing: "-0.01em",
                 color: cssVar.color.textPrimary,
@@ -125,7 +133,7 @@ export function Features() {
             </h3>
             <p
               style={{
-                fontSize: 14,
+                fontSize: 13.5,
                 lineHeight: 1.6,
                 color: cssVar.color.textSecondary,
                 margin: 0,
@@ -133,9 +141,9 @@ export function Features() {
             >
               {f.desc}
             </p>
-          </article>
+          </motion.article>
         ))}
-      </div>
+      </motion.div>
 
       <style>{`
         .mkt-feature-grid {
@@ -143,11 +151,13 @@ export function Features() {
           grid-template-columns: 1fr;
           gap: 16px;
         }
-        @media (min-width: 640px) {
+        .mkt-features-bee { display: none; }
+        @media (min-width: 560px) {
           .mkt-feature-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 1000px) {
-          .mkt-feature-grid { grid-template-columns: repeat(3, 1fr); }
+          .mkt-feature-grid { grid-template-columns: repeat(5, 1fr); gap: 14px; }
+          .mkt-features-bee { display: block; }
         }
       `}</style>
     </section>

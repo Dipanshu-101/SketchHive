@@ -11,16 +11,16 @@ import {
 } from "@/features/marketing/components";
 
 /**
- * Landing page — SketchHive V2.
+ * Landing page — SketchHive V2.1 (reference-accurate recreation).
  *
- * Storytelling order (§6/§11): Hero → Features → Collaboration showcase →
- * Stats → Testimonials → Final CTA → Footer. The bee mascot bookends the page
- * (hero + CTA) and dashed flight-paths thread the margins, so the mascot reads
- * as part of the product, not a corner logo. All CTAs preserve the existing
- * routes (/signup, /signin, /rooms).
+ * Order matches the reference exactly: Nav → Hero → Features (Why SketchHive)
+ * → Collaboration showcase → Stats → Testimonials → Final CTA → Footer. The bee
+ * mascot recurs across sections carrying colored shapes along dashed
+ * flight-paths.
  *
- * This is a Server Component (SSR/SEO-friendly per §6); the interactive bits
- * (nav scroll state, hover) are isolated in their own "use client" components.
+ * Server Component (SSR/SEO); interactive/animated pieces are isolated "use
+ * client" components. All CTAs preserve existing routes (/signup, /signin,
+ * /rooms).
  */
 export default function LandingPage() {
   return (

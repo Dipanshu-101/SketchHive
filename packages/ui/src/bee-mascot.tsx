@@ -17,9 +17,21 @@ import { cssVar } from "./tokens";
  */
 export type BeePose = "flying" | "waving" | "thinking" | "lost";
 
+/** A shape the bee carries below its body (reference: bees ferry colored
+ *  cubes/triangles/spheres across the page). */
+export type BeeCarry = "cube" | "triangle" | "sphere" | null;
+
+const CARRY_COLOR: Record<Exclude<BeeCarry, null>, string> = {
+  cube: "var(--color-note-lilac)",
+  triangle: "var(--color-note-mint)",
+  sphere: "var(--color-note-sky)",
+};
+
 export interface BeeMascotProps {
   size?: number; // px, default 96
   pose?: BeePose; // default "flying"
+  /** Optional shape the bee ferries below itself (reference motif). */
+  carry?: BeeCarry;
   /** Gentle idle bob — for illustration-only zones, never near the canvas. */
   float?: boolean;
   style?: CSSProperties;
@@ -30,6 +42,7 @@ export interface BeeMascotProps {
 export function BeeMascot({
   size = 96,
   pose = "flying",
+  carry = null,
   float = false,
   style,
   className,
@@ -167,6 +180,51 @@ export function BeeMascot({
         >
           ?
         </text>
+      )}
+
+      {/* ── Carried shape (reference: bees ferry colored shapes) ── */}
+      {carry && (
+        <g>
+          {/* thread from body to shape */}
+          <path
+            d="M60 90 v10"
+            stroke="var(--color-text-on-brand)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          {carry === "cube" && (
+            <rect
+              x="48"
+              y="100"
+              width="24"
+              height="24"
+              rx="5"
+              fill={CARRY_COLOR.cube}
+              stroke="var(--color-text-on-brand)"
+              strokeWidth="2"
+              transform="rotate(8 60 112)"
+            />
+          )}
+          {carry === "triangle" && (
+            <path
+              d="M60 100 L74 124 L46 124 Z"
+              fill={CARRY_COLOR.triangle}
+              stroke="var(--color-text-on-brand)"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          )}
+          {carry === "sphere" && (
+            <circle
+              cx="60"
+              cy="112"
+              r="13"
+              fill={CARRY_COLOR.sphere}
+              stroke="var(--color-text-on-brand)"
+              strokeWidth="2"
+            />
+          )}
+        </g>
       )}
     </svg>
   );

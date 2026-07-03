@@ -1,23 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Play, Sparkles } from "lucide-react";
-import { Button, BeeMascot, FlightPath } from "@repo/ui";
+import { motion } from "framer-motion";
+import {
+  ArrowUpRight,
+  Play,
+  Zap,
+  Infinity as InfinityIcon,
+  ShieldCheck,
+  MonitorSmartphone,
+} from "lucide-react";
+import { Button } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { WhiteboardMockup } from "./WhiteboardMockup";
+import { FloatingBee } from "./FloatingBee";
+import { fadeUp, scaleIn, staggerParent } from "../motion";
 
-const TRUST = [
-  "Real-time collaboration",
-  "Infinite canvas",
-  "Secure & private",
-  "Cross-platform",
+const INDICATORS = [
+  { icon: Zap, label: "Real-time Collaboration" },
+  { icon: InfinityIcon, label: "Infinite Canvas" },
+  { icon: ShieldCheck, label: "Secure & Private" },
+  { icon: MonitorSmartphone, label: "Cross Platform" },
 ];
 
 /**
- * Hero — asymmetric split: headline + dual CTA on the left, a live whiteboard
- * mockup on the right, with the bee mascot and dashed flight-paths as ambient
- * brand decoration in the margins (never competing with content, §0). All CTAs
- * route to the existing pages.
+ * Hero — reference-accurate split: left copy column, right canvas mockup that
+ * dominates the fold. Badge → 3-line heading (honey accent on the last line) →
+ * paragraph → dual CTA → 4 feature indicators. Bees carrying shapes flank the
+ * hero exactly like the reference. Entrance animations stagger in on load.
  */
 export function Hero() {
   return (
@@ -26,113 +36,99 @@ export function Hero() {
         position: "relative",
         maxWidth: 1200,
         margin: "0 auto",
-        padding: "clamp(64px, 10vw, 120px) 24px clamp(48px, 7vw, 88px)",
+        padding: "clamp(40px, 6vw, 72px) 32px clamp(48px, 6vw, 80px)",
       }}
     >
-      {/* ambient decoration */}
-      <FlightPath
-        animate
-        width={220}
-        height={120}
-        style={{
-          position: "absolute",
-          top: 40,
-          left: -40,
-          opacity: 0.5,
-          pointerEvents: "none",
-        }}
+      {/* Bees flanking the hero (reference placement) */}
+      <FloatingBee
+        carry="cube"
+        size={78}
+        style={{ position: "absolute", top: 40, left: 4 }}
+        className="mkt-hero-bee-l"
       />
-      <BeeMascot
-        pose="flying"
-        float
-        size={72}
-        style={{
-          position: "absolute",
-          top: 24,
-          right: "6%",
-          pointerEvents: "none",
-        }}
-        className="mkt-hero-bee"
+      <FloatingBee
+        carry="triangle"
+        size={70}
+        delay={0.8}
+        style={{ position: "absolute", top: 250, right: 8 }}
+        className="mkt-hero-bee-r"
       />
 
       <div className="mkt-hero-grid">
         {/* ── Left column ── */}
-        <div>
-          <span
-            className="animate-fade-in-up"
+        <motion.div
+          variants={staggerParent(0.1)}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.span
+            variants={fadeUp}
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              fontSize: 12,
+              fontSize: 12.5,
               fontWeight: 600,
-              letterSpacing: "0.02em",
-              color: cssVar.color.honey400,
-              background: cssVar.color.honeyGlow,
-              border: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 30%, transparent)`,
-              padding: "6px 14px",
+              color: cssVar.color.textSecondary,
+              background: cssVar.color.bgElevated,
+              border: `1px solid ${cssVar.color.border}`,
+              padding: "7px 15px",
               borderRadius: 999,
-              marginBottom: 24,
+              marginBottom: 26,
             }}
           >
-            <Sparkles size={13} />
-            Collaborate. Creatively. In real-time.
-          </span>
-
-          <h1
-            className="animate-fade-in-up"
-            style={{
-              fontSize: "clamp(40px, 6.4vw, 68px)",
-              fontWeight: 800,
-              lineHeight: 1.03,
-              letterSpacing: "-0.035em",
-              color: cssVar.color.textPrimary,
-              margin: "0 0 20px",
-              // @ts-expect-error CSS custom property for staggered entrance
-              "--delay": "60ms",
-            }}
-          >
-            Where teams think
-            <br />
-            out loud, on{" "}
             <span
               style={{
-                color: cssVar.color.honey500,
-                position: "relative",
-                whiteSpace: "nowrap",
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                border: `2px solid ${cssVar.color.honey500}`,
+                display: "inline-block",
               }}
-            >
-              one canvas
-            </span>
-            .
-          </h1>
+            />
+            Collaborate. Creatively. In Real-time.
+          </motion.span>
 
-          <p
-            className="animate-fade-in-up"
+          <motion.h1
+            variants={fadeUp}
             style={{
-              fontSize: "clamp(15px, 1.4vw, 17px)",
-              lineHeight: 1.65,
-              color: cssVar.color.textSecondary,
-              maxWidth: 480,
-              margin: "0 0 32px",
-              // @ts-expect-error CSS custom property for staggered entrance
-              "--delay": "120ms",
+              fontSize: "clamp(38px, 5.6vw, 62px)",
+              fontWeight: 800,
+              lineHeight: 1.04,
+              letterSpacing: "-0.035em",
+              color: cssVar.color.textPrimary,
+              margin: "0 0 22px",
             }}
           >
-            SketchHive is the real-time whiteboard where teams brainstorm, map
-            ideas, and build together — every stroke synced the instant it
-            happens.
-          </p>
+            Collaboration
+            <br />
+            made as simple as
+            <br />
+            <span style={{ color: cssVar.color.honey500 }}>a sketch.</span>
+          </motion.h1>
 
-          <div
-            className="animate-fade-in-up"
+          <motion.p
+            variants={fadeUp}
+            style={{
+              fontSize: "clamp(15px, 1.3vw, 16px)",
+              lineHeight: 1.7,
+              color: cssVar.color.textSecondary,
+              maxWidth: 440,
+              margin: "0 0 32px",
+            }}
+          >
+            SketchHive is a real-time collaborative whiteboard for teams to
+            brainstorm, plan, and create together. Draw, share ideas, and build
+            amazing things — together.
+          </motion.p>
+
+          <motion.div
+            variants={fadeUp}
             style={{
               display: "flex",
               flexWrap: "wrap",
               gap: 12,
-              marginBottom: 36,
-              // @ts-expect-error CSS custom property for staggered entrance
-              "--delay": "180ms",
+              marginBottom: 34,
             }}
           >
             <Link href="/signup" style={{ textDecoration: "none" }}>
@@ -141,67 +137,54 @@ export function Hero() {
                 size="lg"
                 rightIcon={<ArrowUpRight size={16} />}
               >
-                Start a whiteboard
+                Start a Whiteboard
               </Button>
             </Link>
             <Link href="/rooms" style={{ textDecoration: "none" }}>
-              <Button variant="outline" size="lg" leftIcon={<Play size={15} />}>
-                Explore rooms
+              <Button variant="ghost" size="lg" leftIcon={<Play size={15} />}>
+                Watch Demo
               </Button>
             </Link>
-          </div>
+          </motion.div>
 
-          <ul
-            className="animate-fade-in-up"
+          <motion.ul
+            variants={fadeUp}
             style={{
               display: "flex",
               flexWrap: "wrap",
-              gap: "10px 20px",
+              gap: "12px 22px",
               listStyle: "none",
               padding: 0,
               margin: 0,
-              // @ts-expect-error CSS custom property for staggered entrance
-              "--delay": "240ms",
             }}
           >
-            {TRUST.map((t) => (
+            {INDICATORS.map(({ icon: Icon, label }) => (
               <li
-                key={t}
+                key={label}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 7,
-                  fontSize: 13,
+                  fontSize: 12.5,
                   color: cssVar.color.textMuted,
                 }}
               >
-                <span
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    background: cssVar.color.honey500,
-                    display: "inline-block",
-                  }}
-                />
-                {t}
+                <Icon size={14} color={cssVar.color.honey500} />
+                {label}
               </li>
             ))}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
 
-        {/* ── Right column: mockup ── */}
-        <div
-          className="animate-scale-in"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            // @ts-expect-error CSS custom property for staggered entrance
-            "--delay": "220ms",
-          }}
+        {/* ── Right column: dominating canvas ── */}
+        <motion.div
+          variants={scaleIn}
+          initial="hidden"
+          animate="visible"
+          style={{ display: "flex", justifyContent: "center" }}
         >
-          <WhiteboardMockup variant="ideas" />
-        </div>
+          <WhiteboardMockup title="Team Brainstorm" />
+        </motion.div>
       </div>
 
       <style>{`
@@ -211,13 +194,13 @@ export function Hero() {
           gap: 48px;
           align-items: center;
         }
-        .mkt-hero-bee { display: none; }
-        @media (min-width: 940px) {
+        .mkt-hero-bee-l, .mkt-hero-bee-r { display: none; }
+        @media (min-width: 960px) {
           .mkt-hero-grid {
-            grid-template-columns: 1.05fr 1fr;
+            grid-template-columns: 0.92fr 1.08fr;
             gap: 40px;
           }
-          .mkt-hero-bee { display: block; }
+          .mkt-hero-bee-l, .mkt-hero-bee-r { display: block; }
         }
       `}</style>
     </section>

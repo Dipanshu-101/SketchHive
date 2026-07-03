@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { Button, BeeMascot, FlightPath } from "@repo/ui";
+import { Button } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
+import { FloatingBee } from "./FloatingBee";
+import { scaleIn, revealOnce } from "../motion";
 
 /**
- * FinalCTA — full-width honey-bordered band, the last strong nudge before the
- * footer. The bee sits inside the band so the mascot bookends the page (it
- * opened the hero, it closes the CTA — "part of the experience").
+ * FinalCTA — the reference's closing block: a large rounded container with a
+ * honey-glowing border on dark elevated background, heading on the left and the
+ * "Get Started for Free" honey button on the right, "No credit card required"
+ * beneath. A bee sits at the lower-left, bookending the page's mascot presence.
  */
 export function FinalCTA() {
   return (
@@ -16,92 +20,97 @@ export function FinalCTA() {
       style={{
         maxWidth: 1120,
         margin: "0 auto",
-        padding: "clamp(24px, 4vw, 40px) 24px clamp(56px, 8vw, 88px)",
+        padding: "clamp(24px, 4vw, 40px) 32px clamp(56px, 8vw, 96px)",
       }}
     >
-      <div
+      <motion.div
+        variants={scaleIn}
+        {...revealOnce}
         style={{
           position: "relative",
           overflow: "hidden",
-          textAlign: "center",
-          padding: "clamp(40px, 6vw, 72px) 24px",
+          padding: "clamp(36px, 5vw, 56px) clamp(28px, 4vw, 56px)",
           borderRadius: cssVar.radius.xl,
-          background: `radial-gradient(120% 140% at 50% 0%, ${cssVar.color.honeyGlow} 0%, transparent 60%), ${cssVar.color.bgElevated}`,
-          border: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 40%, ${cssVar.color.border})`,
-          boxShadow: cssVar.shadow.lg,
+          background: `radial-gradient(120% 160% at 50% -20%, ${cssVar.color.honeyGlow} 0%, transparent 55%), ${cssVar.color.bgElevated}`,
+          border: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 55%, ${cssVar.color.border})`,
+          boxShadow: `${cssVar.shadow.lg}, 0 0 60px color-mix(in srgb, ${cssVar.color.honey500} 12%, transparent)`,
         }}
       >
-        <FlightPath
-          width={200}
-          height={90}
-          style={{
-            position: "absolute",
-            top: 16,
-            left: -30,
-            opacity: 0.4,
-            pointerEvents: "none",
-          }}
-        />
-        <BeeMascot
-          pose="waving"
-          float
-          size={64}
-          style={{
-            position: "absolute",
-            top: 18,
-            right: "8%",
-            pointerEvents: "none",
-          }}
+        <FloatingBee
+          carry="cube"
+          size={66}
+          style={{ position: "absolute", bottom: 12, left: 16 }}
           className="mkt-cta-bee"
         />
 
-        <h2
-          style={{
-            fontSize: "clamp(26px, 4vw, 40px)",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            lineHeight: 1.1,
-            color: cssVar.color.textPrimary,
-            margin: "0 0 12px",
-          }}
-        >
-          Ready to bring your ideas to life?
-        </h2>
-        <p
-          style={{
-            fontSize: 16,
-            color: cssVar.color.textSecondary,
-            margin: "0 0 28px",
-          }}
-        >
-          Join thousands of teams already collaborating on SketchHive.
-        </p>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link href="/signup" style={{ textDecoration: "none" }}>
-            <Button
-              variant="primary"
-              size="lg"
-              rightIcon={<ArrowUpRight size={16} />}
+        <div className="mkt-cta-inner">
+          <div>
+            <h2
+              style={{
+                fontSize: "clamp(24px, 3.4vw, 36px)",
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.12,
+                color: cssVar.color.textPrimary,
+                margin: "0 0 8px",
+              }}
             >
-              Get started for free
-            </Button>
-          </Link>
+              Ready to bring your ideas to life?
+            </h2>
+            <p
+              style={{
+                fontSize: 15.5,
+                color: cssVar.color.textSecondary,
+                margin: 0,
+              }}
+            >
+              Join thousands of teams already collaborating on SketchHive.
+            </p>
+          </div>
+
+          <div style={{ textAlign: "center" }}>
+            <Link href="/signup" style={{ textDecoration: "none" }}>
+              <Button
+                variant="primary"
+                size="lg"
+                rightIcon={<ArrowUpRight size={16} />}
+              >
+                Get Started for Free
+              </Button>
+            </Link>
+            <p
+              style={{
+                fontSize: 12.5,
+                color: cssVar.color.textMuted,
+                margin: "12px 0 0",
+              }}
+            >
+              No credit card required
+            </p>
+          </div>
         </div>
-        <p style={{ fontSize: 13, color: cssVar.color.textMuted, marginTop: 16 }}>
-          No credit card required.
-        </p>
-      </div>
+      </motion.div>
 
       <style>{`
+        .mkt-cta-inner {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 24px;
+        }
         .mkt-cta-bee { display: none; }
-        @media (min-width: 720px) { .mkt-cta-bee { display: block; } }
+        @media (min-width: 820px) {
+          .mkt-cta-inner {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+          }
+          .mkt-cta-bee { display: block; }
+        }
       `}</style>
     </section>
   );

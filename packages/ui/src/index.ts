@@ -30,7 +30,7 @@ export { EmptyState } from "./empty-state";
 export type { EmptyStateProps } from "./empty-state";
 
 export { BeeMascot } from "./bee-mascot";
-export type { BeeMascotProps, BeePose } from "./bee-mascot";
+export type { BeeMascotProps, BeePose, BeeCarry } from "./bee-mascot";
 
 export { FlightPath } from "./flight-path";
 export type { FlightPathProps } from "./flight-path";
