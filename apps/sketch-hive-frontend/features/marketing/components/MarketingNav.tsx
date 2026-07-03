@@ -8,13 +8,21 @@ import { cssVar } from "@repo/ui/tokens";
 
 /**
  * MarketingNav — a sticky, inset "liquid-glass" panel: rounded (card radius),
- * semi-transparent dark, backdrop-blurred, with a subtle border, floating
- * slightly in from the viewport edge so it reads as a floating bar.
+ * semi-transparent dark, backdrop-blurred, subtle border, floating in from the
+ * viewport edges and horizontally centered.
  *
- * On scroll past a threshold it smoothly SHRINKS — reduced height/padding and
- * the center nav links fade/collapse out — leaving only the logo and the
- * Log in / Sign up free actions. Scrolling back to the top restores the full
- * bar. Height/padding are animated (not just opacity) so it visibly compacts.
+ * FULL STATE (top of page): full width, showing logo (left), the center anchor
+ * links, and Log in / Sign up free (right).
+ *
+ * SHRUNK STATE (scrolled past threshold): the bar contracts to a compact,
+ * horizontally-centered PILL — width shrinks to just fit logo + actions; the
+ * center links are removed from the layout so the bar visibly narrows (not just
+ * a shorter full-width strip). Width is the primary animated change; height and
+ * padding also ease down slightly.
+ *
+ * The links cross-fade out (fast) while the width animates (medium), so content
+ * never looks abruptly cut off; scrolling back to top reverses it — width
+ * expands first, then links fade back in.
  *
  * Auth routes are preserved (/signin, /signup); marketing links anchor to
  * in-page sections (with "#" placeholders where a page doesn't exist yet).
@@ -45,34 +53,43 @@ export function MarketingNav() {
         position: "sticky",
         top: 12,
         zIndex: 60,
-        // inset from the viewport edges so the panel floats
+        // center the pill; inset from the viewport edges so the panel floats
+        display: "flex",
+        justifyContent: "center",
         padding: "0 16px",
       }}
     >
       <header
+        data-shrunk={shrunk}
+        className="mkt-nav"
         style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          // liquid-glass panel
+          // The bar sizes to its content and is centered by the wrapper. In the
+          // full state its max-width lets it span the layout; in the shrunk
+          // state the (removed) links let it collapse to a compact pill. The
+          // max-width transition is what makes the WIDTH visibly animate.
+          width: "100%",
+          maxWidth: shrunk ? 440 : 1200,
           borderRadius: cssVar.radius.lg,
           background: `color-mix(in srgb, ${cssVar.color.bgBase} 68%, transparent)`,
           backdropFilter: "blur(18px) saturate(150%)",
           WebkitBackdropFilter: "blur(18px) saturate(150%)",
           border: `1px solid ${cssVar.color.border}`,
           boxShadow: cssVar.shadow.md,
-          // animate the compaction (height driven by inner padding)
-          transition: `padding ${cssVar.duration.medium} ${cssVar.ease.out}`,
-          padding: shrunk ? "0 20px" : "0 24px",
+          padding: shrunk ? "0 18px" : "0 24px",
+          transition: `max-width ${cssVar.duration.medium} ${cssVar.ease.out}, padding ${cssVar.duration.medium} ${cssVar.ease.out}`,
         }}
       >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            // height compaction lives here so it animates smoothly
-            height: shrunk ? 56 : 72,
-            transition: `height ${cssVar.duration.medium} ${cssVar.ease.out}`,
+            // Full: spread across the bar. Shrunk: sit close together so the
+            // pill reads as compact rather than a stretched strip.
+            justifyContent: shrunk ? "center" : "space-between",
+            gap: shrunk ? 20 : 16,
+            // height compaction — animated alongside width
+            height: shrunk ? 54 : 72,
+            transition: `height ${cssVar.duration.medium} ${cssVar.ease.out}, gap ${cssVar.duration.medium} ${cssVar.ease.out}`,
           }}
         >
           {/* Logo */}
@@ -83,6 +100,7 @@ export function MarketingNav() {
               alignItems: "center",
               gap: 11,
               textDecoration: "none",
+              flexShrink: 0,
             }}
           >
             <span
@@ -113,21 +131,21 @@ export function MarketingNav() {
             </span>
           </Link>
 
-          {/* Center links — hidden entirely in the shrunk state, and only
-              shown at all on wider viewports (see media query below). */}
+          {/* Center links — collapse out of the layout when shrunk so the bar
+              genuinely narrows. Fade is faster than the width change and, on
+              expand, is delayed until the bar has widened (see CSS below) so it
+              never looks like content is being clipped. Only rendered as a flex
+              row on wide viewports. */}
           <nav
             className="mkt-nav-links"
-            data-shrunk={shrunk}
             style={{
               display: "none",
               gap: 34,
               alignItems: "center",
-              // collapse smoothly when shrinking
+              overflow: "hidden",
               maxWidth: shrunk ? 0 : 640,
               opacity: shrunk ? 0 : 1,
-              overflow: "hidden",
               pointerEvents: shrunk ? "none" : "auto",
-              transition: `opacity ${cssVar.duration.base} ${cssVar.ease.out}, max-width ${cssVar.duration.medium} ${cssVar.ease.out}`,
             }}
           >
             {LINKS.map((l) => (
@@ -155,7 +173,14 @@ export function MarketingNav() {
           </nav>
 
           {/* Right actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              flexShrink: 0,
+            }}
+          >
             <Link href="/signin" style={{ textDecoration: "none" }}>
               <Button variant="outline" size="sm">
                 Log in
@@ -171,9 +196,30 @@ export function MarketingNav() {
       </header>
 
       <style>{`
+        /* Center links only exist on wider viewports. */
         @media (min-width: 900px) {
-          /* Show links only when NOT shrunk (data-shrunk="false"). */
-          .mkt-nav-links[data-shrunk="false"] { display: flex !important; }
+          .mkt-nav-links { display: flex !important; }
+        }
+
+        /* SHRINKING (scroll down): fade links out FAST and FIRST, then let the
+           width/max-width collapse — so the bar narrows into content that has
+           already faded, never clipping visible text. */
+        .mkt-nav-links {
+          transition:
+            opacity ${cssVar.duration.base} ${cssVar.ease.out},
+            max-width ${cssVar.duration.medium} ${cssVar.ease.out} ${cssVar.duration.fast};
+        }
+
+        /* EXPANDING (scroll to top): reverse — widen the bar FIRST, then fade
+           the links back in after the width has opened up. */
+        .mkt-nav[data-shrunk="false"] .mkt-nav-links {
+          transition:
+            opacity ${cssVar.duration.base} ${cssVar.ease.out} ${cssVar.duration.medium},
+            max-width ${cssVar.duration.medium} ${cssVar.ease.out};
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mkt-nav, .mkt-nav *, .mkt-nav-links { transition: none !important; }
         }
       `}</style>
     </div>
