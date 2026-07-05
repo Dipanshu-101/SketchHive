@@ -70,12 +70,15 @@ export function Features() {
         scrollMarginTop: 88,
       }}
     >
-      {/* bee near the section heading (reference) */}
+      {/* bee near the section heading (reference). Mirrored (flip) so this
+          right-side bee faces inward toward the page center. */}
       <FloatingBee
-        carry="sphere"
-        size={64}
+        variant="sphere"
+        size={80}
         delay={0.4}
-        style={{ position: "absolute", top: 30, right: 20 }}
+        flip
+        showPath={false}
+        style={{ position: "absolute", top: 24, right: 24 }}
         className="mkt-features-bee"
       />
 
@@ -86,7 +89,11 @@ export function Features() {
 
       <motion.div
         className="mkt-feature-grid"
-        style={{ marginTop: "clamp(36px, 4vw, 56px)" }}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          marginTop: "clamp(36px, 4vw, 56px)",
+        }}
         variants={staggerParent(0.08)}
         {...revealOnce}
       >

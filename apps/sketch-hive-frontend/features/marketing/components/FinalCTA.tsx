@@ -18,11 +18,24 @@ export function FinalCTA() {
   return (
     <section
       style={{
+        position: "relative",
         maxWidth: 1120,
         margin: "0 auto",
         padding: "clamp(24px, 4vw, 40px) 32px clamp(56px, 8vw, 96px)",
       }}
     >
+      {/* Bee lives on the SECTION, not the card — the card clips its content
+          (overflow: hidden for the glow), so a bee placed inside would be
+          cropped. Anchored to the card's lower-left corner from outside so it
+          stays fully visible and reads as perched on the card. */}
+      <FloatingBee
+        variant="cube"
+        size={83}
+        showPath={false}
+        style={{ position: "absolute", bottom: 30, left: 18, zIndex: 2 }}
+        className="mkt-cta-bee"
+      />
+
       <motion.div
         variants={scaleIn}
         {...revealOnce}
@@ -36,13 +49,6 @@ export function FinalCTA() {
           boxShadow: `${cssVar.shadow.lg}, 0 0 60px color-mix(in srgb, ${cssVar.color.honey500} 12%, transparent)`,
         }}
       >
-        <FloatingBee
-          carry="cube"
-          size={66}
-          style={{ position: "absolute", bottom: 12, left: 16 }}
-          className="mkt-cta-bee"
-        />
-
         <div className="mkt-cta-inner">
           <div>
             <h2

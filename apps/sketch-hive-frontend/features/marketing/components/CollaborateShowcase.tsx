@@ -34,11 +34,12 @@ export function CollaborateShowcase() {
         scrollMarginTop: 88,
       }}
     >
+      {/* left-side bee — already faces inward, no mirror needed */}
       <FloatingBee
-        carry="sphere"
-        size={70}
+        variant="sphere"
+        size={88}
         delay={0.5}
-        style={{ position: "absolute", bottom: 40, left: 8 }}
+        style={{ position: "absolute", bottom: 32, left: 8 }}
         className="mkt-showcase-bee"
       />
 
@@ -151,6 +152,8 @@ export function CollaborateShowcase() {
 
       <style>{`
         .mkt-showcase-grid {
+          position: relative;
+          z-index: 1;
           display: grid;
           grid-template-columns: 1fr;
           gap: 48px;

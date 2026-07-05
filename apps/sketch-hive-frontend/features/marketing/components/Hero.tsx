@@ -39,18 +39,22 @@ export function Hero() {
         padding: "clamp(40px, 6vw, 72px) 32px clamp(48px, 6vw, 80px)",
       }}
     >
-      {/* Bees flanking the hero (reference placement) */}
+      {/* Bees flanking the hero (reference placement). The right bee is mirrored
+          (flip) so it faces inward toward the page center. Both sit in a
+          decorative layer behind the content grid (z-index below). */}
       <FloatingBee
-        carry="cube"
-        size={78}
-        style={{ position: "absolute", top: 40, left: 4 }}
+        variant="cube"
+        size={98}
+        style={{ position: "absolute", top: 28, left: 8 }}
         className="mkt-hero-bee-l"
       />
       <FloatingBee
-        carry="triangle"
-        size={70}
+        variant="triangle"
+        size={88}
         delay={0.8}
-        style={{ position: "absolute", top: 250, right: 8 }}
+        flip
+        showPath={false}
+        style={{ position: "absolute", top: 250, right: 12 }}
         className="mkt-hero-bee-r"
       />
 
@@ -189,6 +193,8 @@ export function Hero() {
 
       <style>{`
         .mkt-hero-grid {
+          position: relative;
+          z-index: 1;
           display: grid;
           grid-template-columns: 1fr;
           gap: 48px;
