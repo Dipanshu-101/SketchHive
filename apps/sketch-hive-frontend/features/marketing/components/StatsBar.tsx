@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cssVar } from "@repo/ui/tokens";
+import { FloatingBee } from "./FloatingBee";
 import { fadeUp, staggerParent, revealOnce } from "../motion";
 
 const STATS = [
@@ -17,7 +18,25 @@ const STATS = [
  */
 export function StatsBar() {
   return (
-    <section style={{ maxWidth: 1120, margin: "0 auto", padding: "0 32px" }}>
+    <section
+      style={{
+        position: "relative",
+        maxWidth: 1120,
+        margin: "0 auto",
+        padding: "0 32px",
+      }}
+    >
+      {/* right-side bee — mirrored (flip) so it faces inward toward the band */}
+      <FloatingBee
+        variant="chat"
+        size={78}
+        delay={0.3}
+        flip
+        showPath={false}
+        style={{ position: "absolute", top: -46, right: 24, zIndex: 2 }}
+        className="mkt-stats-bee"
+      />
+
       <motion.div
         variants={staggerParent(0.08)}
         {...revealOnce}
@@ -71,11 +90,13 @@ export function StatsBar() {
       </motion.div>
 
       <style>{`
+        .mkt-stats-bee { display: none; }
         @media (min-width: 760px) {
           .mkt-stats { grid-template-columns: repeat(4, 1fr) !important; }
           /* On 4-up, every column except the first gets a separator. */
           .mkt-stat { border-left: 1px solid ${cssVar.color.border} !important; }
           .mkt-stat-0 { border-left: none !important; }
+          .mkt-stats-bee { display: block; }
         }
       `}</style>
     </section>

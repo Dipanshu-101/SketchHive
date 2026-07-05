@@ -6,6 +6,7 @@ import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { SectionHeading } from "./SectionHeading";
+import { FloatingBee } from "./FloatingBee";
 import { fadeUp, staggerParent, revealOnce } from "../motion";
 
 const TESTIMONIALS = [
@@ -47,11 +48,22 @@ export function Testimonials() {
   return (
     <section
       style={{
+        position: "relative",
         maxWidth: 1200,
         margin: "0 auto",
         padding: "clamp(48px, 7vw, 88px) 32px",
       }}
     >
+      {/* left-side bee near the heading — already faces inward, no mirror needed */}
+      <FloatingBee
+        variant="notes"
+        size={72}
+        delay={0.4}
+        showPath={false}
+        style={{ position: "absolute", top: 34, left: 16, zIndex: 2 }}
+        className="mkt-testimonials-bee"
+      />
+
       <SectionHeading eyebrow="Loved by Teams" title="What our users say" />
 
       <div
@@ -127,6 +139,7 @@ export function Testimonials() {
       </div>
 
       <style>{`
+        .mkt-testimonials-bee { display: none; }
         .mkt-testimonial-track {
           flex: 1;
           display: grid;
@@ -140,6 +153,7 @@ export function Testimonials() {
         }
         @media (min-width: 760px) {
           .mkt-testimonial-track { grid-template-columns: repeat(3, 1fr); }
+          .mkt-testimonials-bee { display: block; }
         }
       `}</style>
     </section>

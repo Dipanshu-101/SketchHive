@@ -36,7 +36,7 @@ export function CollaborateShowcase() {
     >
       {/* left-side bee — already faces inward, no mirror needed */}
       <FloatingBee
-        variant="sphere"
+        variant="lens"
         size={88}
         delay={0.5}
         style={{ position: "absolute", bottom: 32, left: 8 }}

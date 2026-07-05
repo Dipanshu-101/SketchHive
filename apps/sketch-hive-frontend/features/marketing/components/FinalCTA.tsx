@@ -29,7 +29,7 @@ export function FinalCTA() {
           cropped. Anchored to the card's lower-left corner from outside so it
           stays fully visible and reads as perched on the card. */}
       <FloatingBee
-        variant="cube"
+        variant="pencil"
         size={83}
         showPath={false}
         style={{ position: "absolute", bottom: 30, left: 18, zIndex: 2 }}

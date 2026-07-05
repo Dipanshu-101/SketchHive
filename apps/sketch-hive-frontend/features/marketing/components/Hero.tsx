@@ -40,21 +40,25 @@ export function Hero() {
       }}
     >
       {/* Bees flanking the hero (reference placement). The right bee is mirrored
-          (flip) so it faces inward toward the page center. Both sit in a
-          decorative layer behind the content grid (z-index below). */}
+          (flip) so it faces inward toward the page center. */}
+      {/* Left bee (cube): sits behind the badge/heading — nudged up-and-left so
+          more of it clears the text and reads clearly. Stays behind content
+          (z-index 0). */}
       <FloatingBee
         variant="cube"
-        size={98}
-        style={{ position: "absolute", top: 28, left: 8 }}
+        size={100}
+        style={{ position: "absolute", top: 10, left: -37 }}
         className="mkt-hero-bee-l"
       />
+      {/* Right bee (triangle): foreground decoration that paints above the grid
+          (z-index 1) — and thus above the WhiteboardMockup canvas — via z-index 2. */}
       <FloatingBee
         variant="triangle"
-        size={88}
+        size={100}
         delay={0.8}
         flip
         showPath={false}
-        style={{ position: "absolute", top: 250, right: 12 }}
+        style={{ position: "absolute", top: 300, right: -20, zIndex: 2 }}
         className="mkt-hero-bee-r"
       />
 
