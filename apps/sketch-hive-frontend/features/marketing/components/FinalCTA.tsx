@@ -32,7 +32,7 @@ export function FinalCTA() {
         variant="pencil"
         size={83}
         showPath={false}
-        style={{ position: "absolute", bottom: 30, left: 18, zIndex: 2 }}
+        style={{ position: "absolute", bottom: 150, left: -20, zIndex: 2 }}
         className="mkt-cta-bee"
       />
 

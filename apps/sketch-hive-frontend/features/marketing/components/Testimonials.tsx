@@ -54,16 +54,8 @@ export function Testimonials() {
         padding: "clamp(48px, 7vw, 88px) 32px",
       }}
     >
-      {/* left-side bee near the heading — already faces inward, no mirror needed */}
-      <FloatingBee
-        variant="notes"
-        size={72}
-        delay={0.4}
-        showPath={false}
-        style={{ position: "absolute", top: 34, left: 16, zIndex: 2 }}
-        className="mkt-testimonials-bee"
-      />
-
+      
+      
       <SectionHeading eyebrow="Loved by Teams" title="What our users say" />
 
       <div
