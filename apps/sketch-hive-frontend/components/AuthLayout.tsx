@@ -32,6 +32,9 @@ export function AuthLayout({
         display: "flex",
         color: cssVar.color.textPrimary,
         background: cssVar.color.bgBase,
+        // Clip the decorative bees that hover just outside the card's corners so
+        // their overflow can never introduce a scrollbar.
+        overflow: "hidden",
       }}
     >
       {illustration && (
@@ -54,7 +57,7 @@ export function AuthLayout({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "clamp(24px, 5vw, 56px) 20px",
+          padding: "clamp(16px, 3vh, 40px) 20px",
           position: "relative",
         }}
       >

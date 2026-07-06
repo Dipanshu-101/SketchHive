@@ -15,8 +15,8 @@ import { signin, signup } from "@/features/auth/services/auth.service";
    AuthPage — premium single-card auth surface (Phase 2.2).
 
    An almost-black empty page (from the layout) with one solid dark card as the
-   sole focal point, flanked by exactly two gently-orbiting bees (top-right,
-   bottom-left) reused from the landing page. All visual richness lives inside
+   sole focal point, flanked by exactly two gently-orbiting bees (top-left,
+   bottom-right) reused from the landing page. All visual richness lives inside
    the card; the auth logic — state, handlers, network calls, payloads,
    redirects, error/loading — is preserved exactly.
 ───────────────────────────────────────── */
@@ -74,24 +74,27 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           pointer-events:none and sit outside the card bounds, so they never
           overlap the form fields. Hidden on small screens where there's no room
           beside the card. ── */}
+      {/* Bee art faces RIGHT by default (see landing Hero). To face inward
+          toward the card center: the top-left bee stays unflipped (faces
+          right/inward); the bottom-right bee is flipped (faces left/inward). */}
       <FlankBee
-        variant="cube"
+        variant="lens"
         size={92}
-        corner="top-right"
+        corner="top-left"
         delay={0}
         loopDuration={13}
         reduce={reduce ?? false}
-        className="auth-bee auth-bee-tr"
+        className="auth-bee auth-bee-tl"
       />
       <FlankBee
-        variant="notes"
+        variant="chat"
         size={78}
-        corner="bottom-left"
+        corner="bottom-right"
         delay={1.1}
         loopDuration={16}
         flip
         reduce={reduce ?? false}
-        className="auth-bee auth-bee-bl"
+        className="auth-bee auth-bee-br"
       />
 
       {/* ── The card ── */}
@@ -105,37 +108,37 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           border: `1px solid ${cssVar.color.border}`,
           borderRadius: 20,
           boxShadow: cssVar.shadow.lg,
-          padding: "40px 36px 32px",
+          padding: "32px 36px 26px",
         }}
       >
         {/* Brand mark — small, centered, restrained */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
           <span
             style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 44,
-              height: 44,
+              width: 42,
+              height: 42,
               borderRadius: cssVar.radius.md,
               background: cssVar.color.honey500,
               color: cssVar.color.textOnBrand,
               boxShadow: cssVar.shadow.sm,
             }}
           >
-            <BeeMark size={26} />
+            <BeeMark size={25} />
           </span>
         </div>
 
         {/* Title only — no marketing copy */}
         <h1
           style={{
-            fontSize: 24,
+            fontSize: 23,
             fontWeight: 800,
             letterSpacing: "-0.03em",
             textAlign: "center",
             color: cssVar.color.textPrimary,
-            margin: "0 0 28px",
+            margin: "0 0 22px",
           }}
         >
           {isSignin ? "Sign In" : "Create Account"}
@@ -209,7 +212,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
             variant="primary"
             size="lg"
             loading={loading}
-            style={{ width: "100%", marginBottom: 24 }}
+            style={{ width: "100%", marginBottom: 20 }}
           >
             {loading
               ? isSignin
@@ -225,7 +228,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
         <div
           style={{
             borderTop: `1px solid ${cssVar.color.border}`,
-            marginBottom: 18,
+            marginBottom: 16,
           }}
         />
 
@@ -279,7 +282,7 @@ function FlankBee({
 }: {
   variant: string;
   size: number;
-  corner: "top-right" | "bottom-left";
+  corner: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   delay: number;
   loopDuration: number;
   flip?: boolean;
@@ -288,14 +291,17 @@ function FlankBee({
 }) {
   // Position the wrapper just outside the card's corner so the bee (and its
   // dashed trail) hover beside the card, never over the fields.
-  const pos: React.CSSProperties =
-    corner === "top-right"
-      ? { position: "absolute", top: -size * 0.55, right: -size * 0.5 }
-      : { position: "absolute", bottom: -size * 0.55, left: -size * 0.5 };
+  const pos: Record<typeof corner, React.CSSProperties> = {
+    "top-left": { top: -size * 0.55, left: -size * 0.5 },
+    "top-right": { top: -size * 0.55, right: -size * 0.5 },
+    "bottom-left": { bottom: -size * 0.55, left: -size * 0.5 },
+    "bottom-right": { bottom: -size * 0.55, right: -size * 0.5 },
+  };
 
-  // Small looping path — a gentle rounded drift, different sense per corner.
+  // Small looping path — a gentle rounded drift, alternating sense so the two
+  // bees never move identically.
   const orbit =
-    corner === "top-right"
+    corner === "top-left" || corner === "bottom-right"
       ? { x: [0, 10, 4, -6, 0], y: [0, -6, 4, -2, 0] }
       : { x: [0, -8, -3, 7, 0], y: [0, 5, -4, 2, 0] };
 
@@ -303,7 +309,9 @@ function FlankBee({
     <motion.div
       aria-hidden="true"
       className={className}
-      style={{ ...pos, zIndex: 0, pointerEvents: "none" }}
+      // High z-index so the bees paint ON TOP of the card; pointerEvents stays
+      // off so they never intercept clicks/typing on the form beneath them.
+      style={{ position: "absolute", ...pos[corner], zIndex: 50, pointerEvents: "none" }}
       animate={reduce ? undefined : orbit}
       transition={
         reduce
