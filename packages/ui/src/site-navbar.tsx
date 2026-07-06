@@ -1,9 +1,10 @@
 "use client";
 
 import { ReactNode } from "react";
+import { token, cssVar } from "./tokens";
 
 /* Inline pencil glyph so the package stays dependency-free */
-function PencilGlyph({ size = 16, color = "#fff" }: { size?: number; color?: string }) {
+function PencilGlyph({ size = 16, color = "currentColor" }: { size?: number; color?: string }) {
   return (
     <svg
       width={size}
@@ -23,7 +24,7 @@ function PencilGlyph({ size = 16, color = "#fff" }: { size?: number; color?: str
 }
 
 /* ─────────────────────────────────────────
-   Sticky top navigation bar
+   Sticky top navigation bar — floating glass surface (§5)
 ───────────────────────────────────────── */
 export function SiteNavbar({
   links,
@@ -35,12 +36,12 @@ export function SiteNavbar({
   return (
     <header
       style={{
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(0,0,0,0.82)",
+        background: `color-mix(in srgb, ${cssVar.color.bgOverlay} 85%, transparent)`,
         backdropFilter: "blur(24px) saturate(140%)",
         WebkitBackdropFilter: "blur(24px) saturate(140%)",
-        border: "2px solid rgba(255,255,255,0.22)",
-        borderRadius: "22px",
+        border: `1px solid ${cssVar.color.borderHover}`,
+        borderRadius: token.radius.xl,
+        boxShadow: cssVar.shadow.md,
         position: "sticky",
         top: 0,
         zIndex: 50,
@@ -71,21 +72,21 @@ export function SiteNavbar({
             style={{
               width: 36,
               height: 36,
-              borderRadius: 9,
-              background: "linear-gradient(135deg,#2563eb,#4f46e5)",
+              borderRadius: token.radius.md,
+              background: cssVar.color.honey500,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 16px rgba(79,70,229,0.5)",
+              boxShadow: cssVar.shadow.sm,
             }}
           >
-            <PencilGlyph size={16} color="#fff" />
+            <PencilGlyph size={16} color={cssVar.color.textOnBrand} />
           </div>
           <span
             style={{
               fontSize: 18,
               fontWeight: 700,
-              color: "#fff",
+              color: cssVar.color.textPrimary,
               letterSpacing: "-0.02em",
             }}
           >
@@ -103,7 +104,7 @@ export function SiteNavbar({
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "rgba(210,225,255,0.7)",
+                  color: cssVar.color.textSecondary,
                   textDecoration: "none",
                 }}
               >

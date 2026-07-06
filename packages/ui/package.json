@@ -7,6 +7,14 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./tokens": {
+      "types": "./src/tokens.ts",
+      "default": "./src/tokens.ts"
+    },
+    "./motion": {
+      "types": "./src/motion.ts",
+      "default": "./src/motion.ts"
+    },
     "./button": {
       "types": "./src/button.tsx",
       "default": "./src/button.tsx"
@@ -18,6 +26,30 @@
     "./input": {
       "types": "./src/input.tsx",
       "default": "./src/input.tsx"
+    },
+    "./spinner": {
+      "types": "./src/spinner.tsx",
+      "default": "./src/spinner.tsx"
+    },
+    "./badge": {
+      "types": "./src/badge.tsx",
+      "default": "./src/badge.tsx"
+    },
+    "./avatar": {
+      "types": "./src/avatar.tsx",
+      "default": "./src/avatar.tsx"
+    },
+    "./empty-state": {
+      "types": "./src/empty-state.tsx",
+      "default": "./src/empty-state.tsx"
+    },
+    "./bee-mascot": {
+      "types": "./src/bee-mascot.tsx",
+      "default": "./src/bee-mascot.tsx"
+    },
+    "./flight-path": {
+      "types": "./src/flight-path.tsx",
+      "default": "./src/flight-path.tsx"
     },
     "./water-ripple-bg": {
       "types": "./src/water-ripple-bg.tsx",

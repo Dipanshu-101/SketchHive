@@ -1,97 +1,296 @@
-/* ── SketchHive Background System ── */
-:root {
-  --bg-base:    #07080f;   /* deepest canvas */
-  --bg-card:    #0d1220;   /* card surfaces  */
-  --glow-teal:  #22c5b4;
-  --glow-blue:  #3b63d2;
-  --glow-deep:  #123c78;
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SketchHive V2 — Design Tokens (single source of truth)
+
+   Tailwind v4 reads @theme natively and generates utilities from these vars
+   (e.g. --color-honey-500 → bg-honey-500 / text-honey-500). Every value also
+   remains available as a raw CSS variable (var(--color-honey-500)) so the
+   inline-style components in packages/ui can consume the same tokens.
+
+   RULE: no raw hex/rgba in feature code or reusable components — reference a
+   token. New colors are added HERE, not inline. (See §2, §13 of the strategy.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Surface (near-black, not pure #000) ── */
+  --color-bg-base: #0a0a0f; /* deepest — page background, sidebar (flat surface) */
+  --color-bg-elevated: #131318; /* cards, form panels (elevated surface) */
+  --color-bg-overlay: #1b1b22; /* toolbars, modals, menus (floating glass base) */
+
+  /* ── Borders ── */
+  --color-border: #26262e;
+  --color-border-hover: #35353f;
+  --color-border-strong: #43434f;
+
+  /* ── Brand — honey-yellow, used sparingly for CTAs + active states ── */
+  --color-honey-400: #ffb84d; /* hover */
+  --color-honey-500: #f5a623; /* primary */
+  --color-honey-600: #d68c10; /* active / pressed */
+  --color-honey-glow: #f5a62333; /* focus rings, glass tint */
+
+  /* ── Text ── */
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #6b6b76;
+  --color-text-on-brand: #1a1204; /* text sitting on a honey fill */
+
+  /* ── Semantic ── */
+  --color-success: #34d399;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
+  --color-warning: #fbbf24;
+
+  /* ── Board / paper surface (the LIGHT whiteboard in mockups) ──
+     A whiteboard is literally white paper with pastel sticky notes — a distinct
+     surface from the dark app chrome. Tokenized so mockups stay consistent. */
+  --color-board-paper: #ffffff;
+  --color-board-panel: #f4f5f7; /* toolbar / top bar on the board */
+  --color-board-line: #e4e6ea; /* board hairlines */
+  --color-board-dot: #e6e8ec; /* dotted grid */
+  --color-board-ink: #1f2430; /* text/arrows on white */
+  --color-board-ink-soft: #5b6472;
+  --color-note-honey: #fce8a8;
+  --color-note-mint: #c6ebc9;
+  --color-note-lilac: #d8c7f0;
+  --color-note-sky: #bfd9f2;
+  --color-note-rose: #f6c6d4;
+  --color-cursor-a: #6366f1; /* collaborator cursor colors */
+  --color-cursor-b: #16a34a;
+
+  /* ── Radius — the "premium" feel lives here as much as color ── */
+  --radius-sm: 8px; /* inputs, badges, tags */
+  --radius-md: 12px; /* buttons, small cards */
+  --radius-lg: 16px; /* panels, modals */
+  --radius-xl: 24px; /* hero cards, auth panels */
+
+  /* ── Elevation — soft, colored-black shadows, not gray ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow-honey: 0 0 0 3px var(--color-honey-glow);
+
+  /* ── Motion — durations + easings (shared by CSS + Framer primitives) ── */
+  --duration-fast: 80ms; /* press / tactile feedback */
+  --duration-base: 150ms; /* hover, most micro-states */
+  --duration-medium: 250ms; /* panels sliding */
+  --duration-slow: 300ms; /* content entering (fadeInUp) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Typography families ── */
+  --font-sans:
+    var(--font-geist-sans), "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "SFMono-Regular", Consolas, monospace;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Base layer
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 body {
-  background-color: var(--bg-base);
-  color: #e8edf5;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
   min-height: 100vh;
-  cursor: none;
 }
 
-/* Ambient background layer — sits behind everything */
+/* Smooth in-page anchor scrolling for the marketing nav links. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Monospace is reserved for on-canvas content ONLY (the user's drawn text),
+   never for UI chrome. Opt in explicitly with .font-canvas. (§4) */
+.font-canvas {
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Surface system — three explicit surfaces, never mixed arbitrarily (§2 / §5)
+
+   1. .surface-flat     — page bg, sidebar. No shadow. Sits in static layout.
+   2. .surface-elevated — cards, form panels. Solid + shadow + border.
+   3. .surface-glass    — toolbars, modals, minimap. Floats OVER dynamic content.
+
+   Appropriateness rule: glass = floats over dynamic content,
+                         solid = sits in static layout.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.surface-flat {
+  background: var(--color-bg-base);
+}
+
+.surface-elevated {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.surface-glass {
+  background: color-mix(in srgb, var(--color-bg-overlay) 85%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Legacy alias — some existing markup still references `.glass`.
+   Points at the canonical floating-glass surface so nothing breaks. */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-bg-overlay) 85%, transparent);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 20px;
-  box-shadow:
-    0 8px 48px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
 
-.bg-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: var(--bg-base);
-  overflow: hidden;
+/* ═══════════════════════════════════════════════════════════════════════════
+   Motion system — keyframes + entrance utilities (§4)
+
+   Pure CSS (no JS animation library). Timings/easings mirror the @theme motion
+   tokens. Entrance utilities animate ONCE on mount; hover/press live on the
+   components themselves. Everything respects prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.bg-canvas::before {
-  content: '';
-  position: absolute;
-  width: 700px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(34, 197, 180, 0.16) 0%,
-    transparent 70%
-  );
-  top: -120px;
-  left: -120px;
-  filter: blur(80px);
-  pointer-events: none;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.bg-canvas::after {
-  content: '';
-  position: absolute;
-  width: 560px;
-  height: 440px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(59, 99, 210, 0.20) 0%,
-    transparent 70%
-  );
-  top: 60px;
-  right: -100px;
-  filter: blur(80px);
-  pointer-events: none;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* Third glow — bottom centre */
-.bg-glow-bottom {
-  position: absolute;
-  width: 480px;
-  height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(18, 60, 120, 0.25) 0%,
-    transparent 70%
-  );
-  bottom: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  filter: blur(80px);
-  pointer-events: none;
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* Subtle film-grain noise overlay */
-.bg-noise {
-  position: absolute;
-  inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  pointer-events: none;
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Idle bee bob + slight rotate — illustration-only zones (§4, §13). */
+@keyframes beeFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+/* Bee wing flutter. */
+@keyframes beeWing {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.82);
+  }
+}
+
+/* Flight-path self-draws in. */
+@keyframes flightDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Soft honey pulse — subtle attention on a live/active indicator. */
+@keyframes honeyPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ── Entrance utilities (add class; optional --delay via inline style) ── */
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn var(--duration-slow) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-scale-in {
+  opacity: 0;
+  animation: scaleIn var(--duration-medium) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.animate-slide-in-right {
+  opacity: 0;
+  animation: slideInRight var(--duration-medium) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Reusable hover-lift for cards/tiles. */
+.hover-lift {
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Accessibility: honor reduced-motion — kill all decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-in-right {
+    opacity: 1;
+  }
 }

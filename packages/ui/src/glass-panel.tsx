@@ -1,9 +1,14 @@
 "use client";
 
 import { CSSProperties, ReactNode } from "react";
+import { token, cssVar } from "./tokens";
 
 /* ─────────────────────────────────────────
-   Frosted-glass container
+   Floating glass surface (§5, surface type 3)
+
+   Reserved for things that hover OVER dynamic content — modals, auth panels,
+   toolbars. Do not use for cards sitting in static layout (use <Card /> — the
+   elevated surface — for those).
 ───────────────────────────────────────── */
 export function GlassPanel({
   children,
@@ -15,18 +20,12 @@ export function GlassPanel({
   className?: string;
 }) {
   const base: CSSProperties = {
-    background: "rgba(255,255,255,0.07)",
-    backdropFilter: "blur(32px) saturate(160%)",
-    WebkitBackdropFilter: "blur(32px) saturate(160%)",
-    borderRadius: 24,
-    border: "1px solid rgba(255,255,255,0.22)",
-    boxShadow: `
-      0 0 0 1px rgba(255,255,255,0.04),
-      0 2px 0 0 rgba(255,255,255,0.18) inset,
-      0 -1px 0 0 rgba(255,255,255,0.06) inset,
-      0 32px 80px rgba(0,0,0,0.8),
-      0 4px 20px rgba(0,0,0,0.5)
-    `,
+    background: `color-mix(in srgb, ${cssVar.color.bgOverlay} 85%, transparent)`,
+    backdropFilter: "blur(24px) saturate(140%)",
+    WebkitBackdropFilter: "blur(24px) saturate(140%)",
+    borderRadius: token.radius.xl,
+    border: `1px solid ${cssVar.color.borderHover}`,
+    boxShadow: cssVar.shadow.lg,
   };
 
   return (

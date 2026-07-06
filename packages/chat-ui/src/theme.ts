@@ -1,35 +1,42 @@
 /**
  * Design tokens for the chat UI.
  *
- * These mirror the SketchHive design system (see app/globals.css and
- * packages/ui) but are tuned for ONE hard requirement: message text must stay
- * perfectly readable on top of a glassmorphic, blurred panel. That is why
- * bubbles use darker, more opaque translucent fills than the panel itself —
- * the panel is frosted glass, the bubbles are legible cards floating on it.
+ * These reference the SketchHive design system via CSS variables (defined in the
+ * host app's globals.css `@theme` block) so chat stays in lockstep with the
+ * palette without importing @repo/ui — this package must remain transport- and
+ * app-agnostic. The one hard requirement: message text must stay perfectly
+ * readable on top of a glassmorphic, blurred panel, so bubbles use darker, more
+ * opaque fills than the panel itself.
+ *
+ * Fallbacks (the second value in each var()) keep these usable even if a
+ * consumer forgets to ship the token layer.
  */
 
 export const chatTheme = {
-  /** Brand accent used for own-message bubbles + focus rings. */
-  accent: "#4f8cff",
-  accentDeep: "#2563eb",
-  accentGlow: "rgba(79,140,255,0.45)",
+  /** Brand accent used for own-message bubbles + focus rings (honey). */
+  accent: "var(--color-honey-500, #f5a623)",
+  accentDeep: "var(--color-honey-600, #d68c10)",
+  accentGlow: "var(--color-honey-glow, rgba(245,166,35,0.2))",
 
   /** Text colors — high contrast against the dark, blurred backdrop. */
-  text: "#eef3fb",
-  textMuted: "rgba(190,205,230,0.62)",
-  textFaint: "rgba(180,200,240,0.4)",
+  text: "var(--color-text-primary, #f5f5f7)",
+  textMuted: "var(--color-text-secondary, #a1a1aa)",
+  textFaint: "var(--color-text-muted, #6b6b76)",
 
   /**
    * Bubble surfaces. Deliberately darker / more opaque than the GlassPanel so
    * the message text never washes out against whatever shows through the blur.
+   * Own-message bubble is a low honey tint; others sit on the elevated surface.
    */
-  bubbleOwn: "rgba(43,86,168,0.55)",
-  bubbleOwnBorder: "rgba(120,170,255,0.45)",
-  bubbleOther: "rgba(15,20,34,0.62)",
-  bubbleOtherBorder: "rgba(255,255,255,0.10)",
+  bubbleOwn:
+    "color-mix(in srgb, var(--color-honey-500, #f5a623) 22%, var(--color-bg-overlay, #1b1b22))",
+  bubbleOwnBorder:
+    "color-mix(in srgb, var(--color-honey-500, #f5a623) 45%, transparent)",
+  bubbleOther: "var(--color-bg-elevated, #131318)",
+  bubbleOtherBorder: "var(--color-border, #26262e)",
 
   /** Hairlines + soft separators. */
-  hairline: "rgba(255,255,255,0.08)",
+  hairline: "var(--color-border, #26262e)",
 
   /** Radii + spacing rhythm shared by bubbles, inputs and the panel. */
   radius: 16,

@@ -12,11 +12,17 @@ export interface ConnectionBadgeProps {
   state: ConnectionState;
 }
 
+// Colors reference the design-system semantic tokens (with fallbacks) so status
+// hues stay consistent with the rest of the app.
+const WARNING = "var(--color-warning, #fbbf24)";
+const SUCCESS = "var(--color-success, #34d399)";
+const DANGER = "var(--color-danger, #f87171)";
+
 const META: Record<ConnectionState, { color: string; label: string; pulse: boolean }> = {
-  connecting: { color: "#fbbf24", label: "Connecting", pulse: true },
-  connected: { color: "#34d399", label: "Connected", pulse: false },
-  reconnecting: { color: "#fbbf24", label: "Reconnecting", pulse: true },
-  disconnected: { color: "#fb7185", label: "Offline", pulse: true },
+  connecting: { color: WARNING, label: "Connecting", pulse: true },
+  connected: { color: SUCCESS, label: "Connected", pulse: false },
+  reconnecting: { color: WARNING, label: "Reconnecting", pulse: true },
+  disconnected: { color: DANGER, label: "Offline", pulse: true },
 };
 
 export function ConnectionBadge({ state }: ConnectionBadgeProps) {

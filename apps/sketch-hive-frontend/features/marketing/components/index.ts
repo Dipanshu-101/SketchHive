@@ -1,0 +1,13 @@
+export { MarketingNav } from "./MarketingNav";
+export { HoneyAmbientBg } from "./HoneyAmbientBg";
+export { Hero } from "./Hero";
+export { Features } from "./Features";
+export { CollaborateShowcase } from "./CollaborateShowcase";
+export { StatsBar } from "./StatsBar";
+export { Testimonials } from "./Testimonials";
+export { FinalCTA } from "./FinalCTA";
+export { MarketingFooter } from "./MarketingFooter";
+export { WhiteboardMockup } from "./WhiteboardMockup";
+export { RoadmapMockup } from "./RoadmapMockup";
+export { FloatingBee } from "./FloatingBee";
+export { SectionHeading } from "./SectionHeading";
