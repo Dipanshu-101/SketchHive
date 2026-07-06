@@ -69,6 +69,7 @@ export function Input({
   name,
   id,
   revealToggle,
+  leftIcon,
 }: InputProps) {
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -109,6 +110,29 @@ export function Input({
         </label>
       )}
       <div style={{ position: "relative" }}>
+        {leftIcon && (
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: 14,
+              transform: "translateY(-50%)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+              color: focused
+                ? cssVar.color.honey500
+                : error
+                  ? cssVar.color.danger
+                  : cssVar.color.textMuted,
+              transition: `color ${cssVar.duration.base}`,
+            }}
+          >
+            {leftIcon}
+          </span>
+        )}
         <input
           id={id}
           name={name}
@@ -122,7 +146,7 @@ export function Input({
           onBlur={() => setFocused(false)}
           style={{
             width: "100%",
-            padding: showReveal ? "13px 44px 13px 16px" : "13px 16px",
+            padding: `13px ${showReveal ? 44 : 16}px 13px ${leftIcon ? 44 : 16}px`,
             borderRadius: token.radius.md,
             fontSize: 14,
             fontFamily: cssVar.font.sans,

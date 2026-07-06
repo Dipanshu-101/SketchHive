@@ -4,18 +4,21 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
+import { Mail, Lock, User } from "lucide-react";
 import { BeeMark } from "@repo/icons";
-import { GlassPanel, Input, Button } from "@repo/ui";
+import { Input, Button } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
+import { FloatingBee } from "@/features/marketing/components";
 import { signin, signup } from "@/features/auth/services/auth.service";
 
 /* ─────────────────────────────────────────
-   Main AuthPage component
+   AuthPage — premium single-card auth surface (Phase 2.2).
 
-   Presentation-only redesign (Phase 2.2): the card now adopts the landing
-   page's honey/dark design system and lives inside the (auth) split-screen
-   shell. All auth logic — state, handlers, network calls, payload shapes,
-   redirects, error/loading handling — is preserved exactly.
+   An almost-black empty page (from the layout) with one solid dark card as the
+   sole focal point, flanked by exactly two gently-orbiting bees (top-right,
+   bottom-left) reused from the landing page. All visual richness lives inside
+   the card; the auth logic — state, handlers, network calls, payloads,
+   redirects, error/loading — is preserved exactly.
 ───────────────────────────────────────── */
 export function AuthPage({ isSignin }: { isSignin: boolean }) {
   const router = useRouter();
@@ -53,28 +56,60 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     }
   };
 
-  // Single submit path — routes through the exact same handlers/payloads as the
-  // original click handler; the <form> wrapper only adds Enter-to-submit.
+  // Single submit path — same handlers/payloads as before; the <form> wrapper
+  // only adds Enter-to-submit.
   const submit = () => (isSignin ? handleSignin() : handleSignup());
 
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
+      // Card entrance: fade + rise + gentle scale, on a soft spring.
+      initial={reduce ? false : { opacity: 0, y: 18, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      style={{ width: "100%", maxWidth: 440 }}
+      transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.9 }}
+      style={{ position: "relative", width: "100%", maxWidth: 440 }}
     >
-      <GlassPanel style={{ padding: "44px 40px 40px" }}>
-        {/* Brand lockup — honey tile + BeeMark, matching the nav/footer/landing */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            justifyContent: "center",
-            marginBottom: 30,
-          }}
-        >
+      {/* ── Flanking bees — anchored to the card's corners, orbiting subtly.
+          Reuses the landing FloatingBee (idle float + rotate + dashed trail);
+          an outer slow motion loop nudges each around its corner. Both are
+          pointer-events:none and sit outside the card bounds, so they never
+          overlap the form fields. Hidden on small screens where there's no room
+          beside the card. ── */}
+      <FlankBee
+        variant="cube"
+        size={92}
+        corner="top-right"
+        delay={0}
+        loopDuration={13}
+        reduce={reduce ?? false}
+        className="auth-bee auth-bee-tr"
+      />
+      <FlankBee
+        variant="notes"
+        size={78}
+        corner="bottom-left"
+        delay={1.1}
+        loopDuration={16}
+        flip
+        reduce={reduce ?? false}
+        className="auth-bee auth-bee-bl"
+      />
+
+      {/* ── The card ── */}
+      <motion.div
+        whileHover={reduce ? undefined : { y: -3 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          background: cssVar.color.bgElevated,
+          border: `1px solid ${cssVar.color.border}`,
+          borderRadius: 20,
+          boxShadow: cssVar.shadow.lg,
+          padding: "40px 36px 32px",
+        }}
+      >
+        {/* Brand mark — small, centered, restrained */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
           <span
             style={{
               display: "inline-flex",
@@ -90,46 +125,23 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           >
             <BeeMark size={26} />
           </span>
-          <span
-            style={{
-              fontSize: 21,
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: cssVar.color.textPrimary,
-            }}
-          >
-            SketchHive
-          </span>
         </div>
 
-        {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <h1
-            style={{
-              fontSize: 27,
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: cssVar.color.textPrimary,
-              margin: "0 0 8px",
-            }}
-          >
-            {isSignin ? "Welcome back" : "Create an account"}
-          </h1>
-          <p
-            style={{
-              fontSize: 14,
-              color: cssVar.color.textSecondary,
-              lineHeight: 1.6,
-              margin: 0,
-            }}
-          >
-            {isSignin
-              ? "Sign in to continue to SketchHive."
-              : "Start collaborating with your team."}
-          </p>
-        </div>
+        {/* Title only — no marketing copy */}
+        <h1
+          style={{
+            fontSize: 24,
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
+            textAlign: "center",
+            color: cssVar.color.textPrimary,
+            margin: "0 0 28px",
+          }}
+        >
+          {isSignin ? "Sign In" : "Create Account"}
+        </h1>
 
-        {/* Fields */}
+        {/* Form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -142,9 +154,10 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
               type="text"
               value={username}
               onChange={setUsername}
-              placeholder="John Doe"
+              placeholder="johndoe"
               name="username"
               autoComplete="username"
+              leftIcon={<User size={17} />}
             />
           )}
           <Input
@@ -155,6 +168,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
             placeholder="you@example.com"
             name="email"
             autoComplete="email"
+            leftIcon={<Mail size={17} />}
           />
           <Input
             label="Password"
@@ -164,10 +178,11 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
             placeholder="••••••••"
             name="password"
             autoComplete={isSignin ? "current-password" : "new-password"}
+            leftIcon={<Lock size={17} />}
             revealToggle
           />
 
-          {/* Error */}
+          {/* Error — animated in */}
           {error && (
             <motion.div
               initial={reduce ? false : { opacity: 0, y: -4 }}
@@ -188,7 +203,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
             </motion.div>
           )}
 
-          {/* Submit button */}
+          {/* Primary CTA */}
           <Button
             type="submit"
             variant="primary"
@@ -206,15 +221,15 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           </Button>
         </form>
 
-        {/* Divider */}
+        {/* Elegant divider */}
         <div
           style={{
             borderTop: `1px solid ${cssVar.color.border}`,
-            marginBottom: 20,
+            marginBottom: 18,
           }}
         />
 
-        {/* Footer link */}
+        {/* Footer switch link */}
         <p
           style={{
             textAlign: "center",
@@ -226,30 +241,102 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           {isSignin ? (
             <>
               Don&apos;t have an account?{" "}
-              <Link href="/signup" style={authLinkStyle}>
-                Sign up
-              </Link>
+              <AuthLink href="/signup">Sign Up</AuthLink>
             </>
           ) : (
             <>
               Already have an account?{" "}
-              <Link href="/signin" style={authLinkStyle}>
-                Sign in
-              </Link>
+              <AuthLink href="/signin">Sign In</AuthLink>
             </>
           )}
         </p>
-      </GlassPanel>
+      </motion.div>
+
+      <style>{`
+        .auth-bee { display: none; }
+        @media (min-width: 560px) {
+          .auth-bee { display: block; }
+        }
+      `}</style>
     </motion.div>
   );
 }
 
-/* Honey-accented secondary link — matches the landing's link language. */
-const authLinkStyle: React.CSSProperties = {
-  color: cssVar.color.honey500,
-  fontWeight: 600,
-  textDecoration: "none",
-  borderBottom: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 35%, transparent)`,
-  paddingBottom: 1,
-  transition: `border-color ${cssVar.duration.base}`,
-};
+/* ─────────────────────────────────────────
+   FlankBee — a landing FloatingBee anchored to a card corner, with an extra
+   slow orbit loop so it drifts gently around that corner (distinct timing per
+   bee). Purely decorative; pointer-events are off via FloatingBee itself.
+───────────────────────────────────────── */
+function FlankBee({
+  variant,
+  size,
+  corner,
+  delay,
+  loopDuration,
+  flip,
+  reduce,
+  className,
+}: {
+  variant: string;
+  size: number;
+  corner: "top-right" | "bottom-left";
+  delay: number;
+  loopDuration: number;
+  flip?: boolean;
+  reduce: boolean;
+  className?: string;
+}) {
+  // Position the wrapper just outside the card's corner so the bee (and its
+  // dashed trail) hover beside the card, never over the fields.
+  const pos: React.CSSProperties =
+    corner === "top-right"
+      ? { position: "absolute", top: -size * 0.55, right: -size * 0.5 }
+      : { position: "absolute", bottom: -size * 0.55, left: -size * 0.5 };
+
+  // Small looping path — a gentle rounded drift, different sense per corner.
+  const orbit =
+    corner === "top-right"
+      ? { x: [0, 10, 4, -6, 0], y: [0, -6, 4, -2, 0] }
+      : { x: [0, -8, -3, 7, 0], y: [0, 5, -4, 2, 0] };
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      className={className}
+      style={{ ...pos, zIndex: 0, pointerEvents: "none" }}
+      animate={reduce ? undefined : orbit}
+      transition={
+        reduce
+          ? undefined
+          : { duration: loopDuration, repeat: Infinity, ease: "easeInOut", delay }
+      }
+    >
+      <FloatingBee variant={variant} size={size} delay={delay} flip={flip} />
+    </motion.div>
+  );
+}
+
+/* Honey-accented switch link with a hover underline transition. */
+function AuthLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        color: cssVar.color.honey500,
+        fontWeight: 600,
+        textDecoration: "none",
+        borderBottom: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 35%, transparent)`,
+        paddingBottom: 1,
+        transition: `border-color ${cssVar.duration.base}`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderBottomColor = cssVar.color.honey400;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderBottomColor = `color-mix(in srgb, ${cssVar.color.honey500} 35%, transparent)`;
+      }}
+    >
+      {children}
+    </Link>
+  );
+}

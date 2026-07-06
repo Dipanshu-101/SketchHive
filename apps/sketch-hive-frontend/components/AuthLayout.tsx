@@ -4,22 +4,25 @@ import { ReactNode } from "react";
 import { cssVar } from "@repo/ui/tokens";
 
 /**
- * AuthLayout — reusable split-screen shell for every auth surface (sign-in,
- * sign-up, and future forgot-password / verify-email / invite-accept). §0/§6.
+ * AuthLayout — the shared shell for every auth surface (sign-in, sign-up, and
+ * future forgot-password / verify-email / invite-accept). §0/§6.
  *
- * Wide screens: branded illustration panel (~48%) beside the form column
- * (~52%), both full-height and vertically centered. Narrow screens: the
- * illustration collapses out (form-first) and the form column keeps the same
- * near-black honey background so the page never reads as bare. The proportions,
- * breakpoint, and dark surface mirror the landing page's split layouts so the
- * transition from Landing → Sign Up → Sign In feels seamless.
+ * A single premium auth card centered on an almost-black page. The page around
+ * the card stays intentionally empty — all visual richness lives inside the card
+ * (see AuthPage), and the only decoration outside it are the two bees the card
+ * anchors to its own corners. `bgBase` (#0a0a0f) is the landing page's base
+ * surface, so the auth page reads as the same near-black world.
+ *
+ * The optional `illustration` slot is retained for API compatibility but is no
+ * longer used by the (auth) layout; when omitted the layout is a plain centered
+ * column.
  */
 export function AuthLayout({
   children,
   illustration,
 }: {
   children: ReactNode;
-  /** Optional brand/illustration panel shown beside the form on wide screens. */
+  /** Optional side panel; unused by the current centered-card design. */
   illustration?: ReactNode;
 }) {
   return (
@@ -33,7 +36,6 @@ export function AuthLayout({
     >
       {illustration && (
         <aside
-          // Illustration side is hidden on narrow viewports (form-first).
           className="auth-illustration"
           style={{
             flex: "1 1 48%",
