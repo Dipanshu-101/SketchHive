@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Users, Pencil } from "lucide-react";
-import { Button, Card, FlightPath, Input, BeeMascot } from "@repo/ui";
+import { Button, Card, FlightPath, Input } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
+import { FloatingBee } from "@/features/marketing/components";
 import { createRoom } from "@/features/rooms/services/rooms.service";
 
 export default function RoomsPage() {
@@ -68,10 +69,12 @@ export default function RoomsPage() {
         style={{ position: "relative", width: "100%", maxWidth: 440 }}
       >
         <FlankBee
+          variant="lens"
           size={78}
           corner="bottom-right"
           delay={1.1}
           loopDuration={16}
+          flip
           liftBy={12}
           reduce={reduce ?? false}
         />
@@ -192,26 +195,42 @@ export default function RoomsPage() {
   );
 }
 
+/* ─────────────────────────────────────────
+   FlankBee — a landing FloatingBee anchored to the card's bottom-right corner,
+   with an extra slow orbit loop so it drifts gently around that corner. Matches
+   the (auth) sign-in/sign-up bee: a lens-carrying bee, flipped to face inward
+   toward the card, with its own dashed flight-path trail behind the card.
+   Purely decorative; pointer-events are off via FloatingBee itself.
+───────────────────────────────────────── */
 function FlankBee({
+  variant,
   size,
   corner,
   delay,
   loopDuration,
+  flip,
   liftBy = 0,
   reduce,
 }: {
+  variant: string;
   size: number;
   corner: "bottom-right";
   delay: number;
   loopDuration: number;
+  flip?: boolean;
   liftBy?: number;
   reduce: boolean;
 }) {
+  // Anchor the wrapper just outside the card's bottom-right corner; `liftBy`
+  // nudges it inward from the bottom edge to keep it in frame.
   const vEdge = -size * 0.55 + liftBy;
+  // Push the trail down toward the bee's foot, ~55% of the bee height inward.
   const pathVOffset = vEdge + size * 0.55;
 
   return (
     <>
+      {/* Flight path — behind the card, above the background, at the bee's foot.
+          Mirror it with the bee when flipped. */}
       <div
         aria-hidden="true"
         style={{
@@ -220,12 +239,15 @@ function FlankBee({
           right: -size * 0.5,
           zIndex: 0,
           pointerEvents: "none",
+          transform: flip ? "scaleX(-1)" : undefined,
+          transformOrigin: "center",
           opacity: 0.5,
         }}
       >
         <FlightPath width={size * 1.7} height={size * 0.6} strokeWidth={2} />
       </div>
 
+      {/* Bee — on top of the card; no built-in trail (we render our own above) */}
       <motion.div
         aria-hidden="true"
         style={{
@@ -242,7 +264,13 @@ function FlankBee({
             : { duration: loopDuration, repeat: Infinity, ease: "easeInOut", delay }
         }
       >
-        <BeeMascot size={size} float={false} carry={null} />
+        <FloatingBee
+          variant={variant}
+          size={size}
+          delay={delay}
+          flip={flip}
+          showPath={false}
+        />
       </motion.div>
     </>
   );
