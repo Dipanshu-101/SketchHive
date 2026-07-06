@@ -2,13 +2,15 @@
  * rooms.service — the only layer that knows the room endpoint shapes (§9).
  *
  * The backend contract:
- *   - POST /room                { name }        → { roomId, slug, room }  (auth)
- *   - GET  /rooms/code/:code                     → { room }               (auth)
- *   - GET  /rooms/:roomId                        → { room }               (auth)
+ *   - POST /room        { name }  → { roomId, slug, room }  (auth)
+ *   - GET  /rooms/:roomId         → { room }                (auth)
  * The auth header is attached by the api-client interceptor.
  *
- * A room has a numeric `id` (what the canvas + websocket consume) and a string
- * `slug` (the human "room code"). Joining by code resolves the slug → id first.
+ * The room's numeric `id` is the single identifier used throughout: the canvas
+ * route (`/canvas/:id`), the websocket, the share link, and the "room code" the
+ * Share dialog shows all use it. Joining by code = resolving that id.
+ * (The backend also exposes GET /rooms/code/:slug for slug lookups, but the app
+ * consistently keys on the id, so it isn't used here.)
  */
 
 import { api } from "@/lib/api-client";
@@ -40,21 +42,9 @@ export async function createRoom(
 }
 
 /**
- * Resolve a room code (slug) to the room, including its numeric id. Throws if
- * the request fails; a 404 means "no such room" and should be surfaced to the
- * user as a clear error.
- */
-export async function getRoomByCode(code: string): Promise<Room> {
-  const res = await api.get<{ room: Room }>(
-    `/rooms/code/${encodeURIComponent(code)}`,
-  );
-  return res.data.room;
-}
-
-/**
- * Resolve a room by numeric id — used to confirm a room exists before opening
- * its canvas (e.g. from a share link). Throws on 404 so the caller can show a
- * graceful "room not found" state.
+ * Resolve a room by numeric id. Used both to confirm a room exists before
+ * opening its canvas (e.g. from a share link) and to join by room code (the code
+ * IS the id). Throws on 404 so the caller can show a graceful "room not found".
  */
 export async function getRoomById(roomId: number | string): Promise<Room> {
   const res = await api.get<{ room: Room }>(

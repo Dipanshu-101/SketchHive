@@ -10,7 +10,7 @@ import { cssVar } from "@repo/ui/tokens";
 import { FloatingBee } from "@/features/marketing/components";
 import {
   createRoom,
-  getRoomByCode,
+  getRoomById,
 } from "@/features/rooms/services/rooms.service";
 import { isAuthenticated } from "@/lib/auth";
 
@@ -45,12 +45,21 @@ export default function RoomsPage() {
       return;
     }
 
+    // The room code IS the room id (same value shown in the Share dialog and
+    // used in share links), so it must be numeric. Reject non-numeric input
+    // early without a wasted request.
+    if (!/^\d+$/.test(code)) {
+      setError("Room code must be a number.");
+      setNeedsSignIn(false);
+      return;
+    }
+
     setError("");
     setNeedsSignIn(false);
     setLoadingJoin(true);
     try {
-      // Resolve the human room code (slug) to the numeric id the canvas uses.
-      const room = await getRoomByCode(code);
+      // Confirm the room exists before navigating (graceful 404 handling).
+      const room = await getRoomById(code);
       router.push(`/canvas/${room.id}`);
     } catch (err: any) {
       const status = err?.response?.status;

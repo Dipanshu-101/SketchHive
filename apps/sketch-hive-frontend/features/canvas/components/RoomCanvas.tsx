@@ -30,9 +30,6 @@ type GateState = "checking" | "ready" | "redirecting" | "not-found" | "error";
 export function RoomCanvas({ roomId }: { roomId: string }) {
   const router = useRouter();
   const [state, setState] = useState<GateState>("checking");
-  // The room's slug (its human "room code"), captured when we validate the room
-  // so the Share dialog can show it without a second request.
-  const [roomCode, setRoomCode] = useState<string>(roomId);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,10 +43,8 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
 
     // Authenticated → confirm the room exists before opening it.
     getRoomById(roomId)
-      .then((room) => {
-        if (cancelled) return;
-        setRoomCode(room.slug);
-        setState("ready");
+      .then(() => {
+        if (!cancelled) setState("ready");
       })
       .catch((err: any) => {
         if (cancelled) return;
@@ -71,7 +66,7 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
   }, [roomId, router]);
 
   if (state === "ready") {
-    return <RoomCanvasInner roomId={roomId} roomCode={roomCode} />;
+    return <RoomCanvasInner roomId={roomId} />;
   }
 
   if (state === "not-found") {
@@ -120,13 +115,7 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
  * any modal rendered inside it below the chat panel (z-index 40). Rendering it
  * at this level lets its high z-index actually win.
  */
-function RoomCanvasInner({
-  roomId,
-  roomCode,
-}: {
-  roomId: string;
-  roomCode: string;
-}) {
+function RoomCanvasInner({ roomId }: { roomId: string }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [failed, setFailed] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -188,7 +177,7 @@ function RoomCanvasInner({
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         shareUrl={buildShareUrl(roomId)}
-        roomCode={roomCode}
+        roomCode={roomId}
       />
     </div>
   );
