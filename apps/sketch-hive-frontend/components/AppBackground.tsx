@@ -10,13 +10,16 @@ import { WaterRippleBg } from "@repo/ui";
  *     the ripple would be invisible while still running a second animation loop.
  *   • `/` (marketing) — the redesigned landing owns its honey ambient background;
  *     the blue ripple clashes with the V2 aesthetic.
+ *   • `/signin` & `/signup` — the redesigned auth pages own their honey ambient
+ *     background (via AuthLayout); the blue ripple clashes with the V2 aesthetic.
  *
- * Auth and Rooms still use it until they are redesigned; this component is the
- * single switch for retiring it route by route.
+ * Rooms still uses it until it is redesigned; this component is the single
+ * switch for retiring it route by route.
  */
 export function AppBackground() {
   const pathname = usePathname();
   if (pathname?.startsWith("/canvas")) return null;
   if (pathname === "/") return null;
+  if (pathname === "/signin" || pathname === "/signup") return null;
   return <WaterRippleBg />;
 }

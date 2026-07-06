@@ -1,24 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageShell, GlassPanel, Input, Button } from "@repo/ui";
+import { motion, useReducedMotion } from "framer-motion";
+import { BeeMark } from "@repo/icons";
+import { GlassPanel, Input, Button } from "@repo/ui";
+import { cssVar } from "@repo/ui/tokens";
 import { signin, signup } from "@/features/auth/services/auth.service";
 
 /* ─────────────────────────────────────────
    Main AuthPage component
+
+   Presentation-only redesign (Phase 2.2): the card now adopts the landing
+   page's honey/dark design system and lives inside the (auth) split-screen
+   shell. All auth logic — state, handlers, network calls, payload shapes,
+   redirects, error/loading handling — is preserved exactly.
 ───────────────────────────────────────── */
 export function AuthPage({ isSignin }: { isSignin: boolean }) {
   const router = useRouter();
+  const reduce = useReducedMotion();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* Behavior unchanged — network calls now route through auth.service (§9). */
+  /* Behavior unchanged — network calls route through auth.service (§9). */
   const handleSignup = async () => {
     setLoading(true);
     setError("");
@@ -45,53 +53,76 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     }
   };
 
+  // Single submit path — routes through the exact same handlers/payloads as the
+  // original click handler; the <form> wrapper only adds Enter-to-submit.
+  const submit = () => (isSignin ? handleSignin() : handleSignup());
+
   return (
-    <PageShell>
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px 16px",
-          fontFamily:
-            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        }}
-      >
-        {/* Glass card */}
-        <GlassPanel style={{ width: "100%", maxWidth: 420, padding: "44px 40px 40px" }}>
-        {/* Logo */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-          <div
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      style={{ width: "100%", maxWidth: 440 }}
+    >
+      <GlassPanel style={{ padding: "44px 40px 40px" }}>
+        {/* Brand lockup — honey tile + BeeMark, matching the nav/footer/landing */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            justifyContent: "center",
+            marginBottom: 30,
+          }}
+        >
+          <span
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 14,
-              background: "linear-gradient(135deg,#2563eb,#4f46e5)",
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 28px rgba(79,70,229,0.55), 0 1px 0 rgba(255,255,255,0.2) inset",
+              width: 44,
+              height: 44,
+              borderRadius: cssVar.radius.md,
+              background: cssVar.color.honey500,
+              color: cssVar.color.textOnBrand,
+              boxShadow: cssVar.shadow.sm,
             }}
           >
-            <Pencil size={22} color="#fff" />
-          </div>
+            <BeeMark size={26} />
+          </span>
+          <span
+            style={{
+              fontSize: 21,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: cssVar.color.textPrimary,
+            }}
+          >
+            SketchHive
+          </span>
         </div>
 
         {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
           <h1
             style={{
-              fontSize: 26,
-              fontWeight: 700,
+              fontSize: 27,
+              fontWeight: 800,
               letterSpacing: "-0.03em",
-              color: "#fff",
-              marginBottom: 8,
+              color: cssVar.color.textPrimary,
+              margin: "0 0 8px",
             }}
           >
             {isSignin ? "Welcome back" : "Create an account"}
           </h1>
-          <p style={{ fontSize: 13, color: "rgba(180,200,240,0.5)", lineHeight: 1.6 }}>
+          <p
+            style={{
+              fontSize: 14,
+              color: cssVar.color.textSecondary,
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
             {isSignin
               ? "Sign in to continue to SketchHive."
               : "Start collaborating with your team."}
@@ -99,114 +130,126 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
         </div>
 
         {/* Fields */}
-        {!isSignin && (
-          <Input
-            label="Username"
-            type="text"
-            value={username}
-            onChange={setUsername}
-            placeholder="John Doe"
-          />
-        )}
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          placeholder="you@example.com"
-        />
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={setPassword}
-          placeholder="••••••••"
-        />
-
-        {/* Error */}
-        {error && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "10px 14px",
-              borderRadius: 9,
-              background: "rgba(239,68,68,0.1)",
-              border: "1px solid rgba(239,68,68,0.25)",
-              fontSize: 13,
-              color: "rgba(252,165,165,0.9)",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        {/* Submit button */}
-        <Button
-          variant="primary"
-          size="lg"
-          loading={loading}
-          onClick={() => (isSignin ? handleSignin() : handleSignup())}
-          style={{ width: "100%", marginBottom: 24 }}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!loading) submit();
+          }}
         >
-          {loading
-            ? isSignin
-              ? "Signing in…"
-              : "Creating account…"
-            : isSignin
-              ? "Sign In"
-              : "Create Account"}
-        </Button>
+          {!isSignin && (
+            <Input
+              label="Username"
+              type="text"
+              value={username}
+              onChange={setUsername}
+              placeholder="John Doe"
+              name="username"
+              autoComplete="username"
+            />
+          )}
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            placeholder="you@example.com"
+            name="email"
+            autoComplete="email"
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            placeholder="••••••••"
+            name="password"
+            autoComplete={isSignin ? "current-password" : "new-password"}
+            revealToggle
+          />
+
+          {/* Error */}
+          {error && (
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              role="alert"
+              style={{
+                marginBottom: 18,
+                padding: "10px 14px",
+                borderRadius: cssVar.radius.md,
+                background: `color-mix(in srgb, ${cssVar.color.danger} 12%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${cssVar.color.danger} 30%, transparent)`,
+                fontSize: 13,
+                color: cssVar.color.danger,
+              }}
+            >
+              {error}
+            </motion.div>
+          )}
+
+          {/* Submit button */}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            loading={loading}
+            style={{ width: "100%", marginBottom: 24 }}
+          >
+            {loading
+              ? isSignin
+                ? "Signing in…"
+                : "Creating account…"
+              : isSignin
+                ? "Sign In"
+                : "Create Account"}
+          </Button>
+        </form>
 
         {/* Divider */}
         <div
           style={{
-            borderTop: "1px solid rgba(255,255,255,0.07)",
+            borderTop: `1px solid ${cssVar.color.border}`,
             marginBottom: 20,
           }}
         />
 
         {/* Footer link */}
-        <p style={{ textAlign: "center", fontSize: 13, color: "rgba(180,200,240,0.4)" }}>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 13.5,
+            color: cssVar.color.textMuted,
+            margin: 0,
+          }}
+        >
           {isSignin ? (
             <>
-              Don't have an account?{" "}
-              <Link
-                href="/signup"
-                style={{
-                  color: "#60a5fa",
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  borderBottom: "1px solid rgba(96,165,250,0.3)",
-                  paddingBottom: 1,
-                  transition: "border-color 0.15s",
-                }}
-              >
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" style={authLinkStyle}>
                 Sign up
               </Link>
             </>
           ) : (
             <>
               Already have an account?{" "}
-              <Link
-                href="/signin"
-                style={{
-                  color: "#60a5fa",
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  borderBottom: "1px solid rgba(96,165,250,0.3)",
-                  paddingBottom: 1,
-                  transition: "border-color 0.15s",
-                }}
-              >
+              <Link href="/signin" style={authLinkStyle}>
                 Sign in
               </Link>
             </>
           )}
         </p>
-        </GlassPanel>
-
-        <style>{`* { box-sizing: border-box; }`}</style>
-      </div>
-    </PageShell>
+      </GlassPanel>
+    </motion.div>
   );
 }
+
+/* Honey-accented secondary link — matches the landing's link language. */
+const authLinkStyle: React.CSSProperties = {
+  color: cssVar.color.honey500,
+  fontWeight: 600,
+  textDecoration: "none",
+  borderBottom: `1px solid color-mix(in srgb, ${cssVar.color.honey500} 35%, transparent)`,
+  paddingBottom: 1,
+  transition: `border-color ${cssVar.duration.base}`,
+};
