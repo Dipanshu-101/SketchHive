@@ -28,13 +28,15 @@ export function AuthLayout({
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100dvh",
+        minHeight: "100dvh",
         display: "flex",
         color: cssVar.color.textPrimary,
         background: cssVar.color.bgBase,
         // Clip the decorative bees that hover just outside the card's corners so
         // their overflow can never introduce a scrollbar.
         overflow: "hidden",
+        boxSizing: "border-box",
       }}
     >
       {illustration && (
@@ -59,6 +61,8 @@ export function AuthLayout({
           justifyContent: "center",
           padding: "clamp(16px, 3vh, 40px) 20px",
           position: "relative",
+          minHeight: 0,
+          overflow: "hidden",
         }}
       >
         {children}

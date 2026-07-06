@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Code2 } from "lucide-react";
-import { BeeMark } from "@repo/icons";
 import { cssVar } from "@repo/ui/tokens";
 
 const COLUMNS = [
@@ -51,20 +50,15 @@ export function MarketingFooter() {
                 marginBottom: 12,
               }}
             >
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 34,
-                  height: 34,
-                  borderRadius: cssVar.radius.md,
-                  background: cssVar.color.honey500,
-                  color: cssVar.color.textOnBrand,
-                }}
-              >
-                <BeeMark size={20} />
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/mascot/logo.svg"
+                alt="SketchHive"
+                width={80}
+                height={80}
+                draggable={false}
+                style={{ display: "block", width: 80, height: 80 }}
+              />
               <span
                 style={{
                   fontSize: 17,

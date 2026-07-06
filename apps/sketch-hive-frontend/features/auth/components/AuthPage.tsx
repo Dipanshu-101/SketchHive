@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Mail, Lock, User } from "lucide-react";
-import { BeeMark } from "@repo/icons";
 import { Input, Button, FlightPath } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { FloatingBee } from "@/features/marketing/components";
@@ -102,23 +101,17 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
           padding: "32px 36px 26px",
         }}
       >
-        {/* Brand mark — small, centered, restrained */}
+        {/* Brand mark — the SketchHive logo (self-colored, no tile) */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 42,
-              height: 42,
-              borderRadius: cssVar.radius.md,
-              background: cssVar.color.honey500,
-              color: cssVar.color.textOnBrand,
-              boxShadow: cssVar.shadow.sm,
-            }}
-          >
-            <BeeMark size={25} />
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/mascot/logo.svg"
+            alt="SketchHive"
+            width={80}
+            height={80}
+            style={{ display: "block", width: 80, height: 80 }}
+            draggable={false}
+          />
         </div>
 
         {/* Title only — no marketing copy */}

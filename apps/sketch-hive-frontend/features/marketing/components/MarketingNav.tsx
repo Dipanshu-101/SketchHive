@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@repo/ui";
-import { BeeMark } from "@repo/icons";
 import { cssVar } from "@repo/ui/tokens";
 
 /**
@@ -151,19 +150,32 @@ export function MarketingNav() {
           >
             <span
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: shrunk ? 26 : 30,
-                height: shrunk ? 26 : 30,
-                borderRadius: cssVar.radius.md,
-                background: cssVar.color.honey500,
-                color: cssVar.color.textOnBrand,
-                boxShadow: cssVar.shadow.sm,
-                transition: `width ${cssVar.duration.medium} ${cssVar.ease.out}, height ${cssVar.duration.medium} ${cssVar.ease.out}`,
+                position: "relative",
+                display: "block",
+                width: 80,
+                height: 58,
+                flexShrink: 0,
+                overflow: "visible",
               }}
             >
-              <BeeMark size={shrunk ? 15 : 18} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/mascot/logo.svg"
+                alt="SketchHive"
+                width={80}
+                height={80}
+                draggable={false}
+                style={{
+                  display: "block",
+                  position: "absolute",
+                  left: 0,
+                  top: "50%",
+                  width: 80,
+                  height: 80,
+                  transform: "translateY(calc(-50% + 8px))",
+                  transition: `width ${cssVar.duration.medium} ${cssVar.ease.out}, height ${cssVar.duration.medium} ${cssVar.ease.out}`,
+                }}
+              />
             </span>
             <span
               style={{
