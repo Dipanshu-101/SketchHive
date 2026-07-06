@@ -94,10 +94,6 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
-  /* Note: the old global `cursor: none` was tied to the legacy water-ripple
-     custom cursor. The drawing engine sets its own cursors on the canvas
-     element (grab/crosshair/text/cell), so a normal system cursor everywhere
-     else is correct — an invisible cursor off-canvas was a UX bug. */
 }
 
 /* Smooth in-page anchor scrolling for the marketing nav links. */
@@ -151,84 +147,6 @@ html {
   border: 1px solid var(--color-border-hover);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Ambient background layer (existing brand chrome — kept, retokenized)
-
-   NOTE (tech debt): this is the legacy blue/teal water-glow motif. The
-   strategy's brand motif is the dashed bee flight-path; replacing this belongs
-   to the later "bee brand-identity pass", not Phase 1. Colors now reference
-   tokens so it moves in lockstep with the palette.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.bg-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: var(--color-bg-base);
-  overflow: hidden;
-}
-
-.bg-canvas::before {
-  content: "";
-  position: absolute;
-  width: 700px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    var(--color-honey-glow) 0%,
-    transparent 70%
-  );
-  top: -120px;
-  left: -120px;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.bg-canvas::after {
-  content: "";
-  position: absolute;
-  width: 560px;
-  height: 440px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    var(--color-honey-glow) 0%,
-    transparent 70%
-  );
-  top: 60px;
-  right: -100px;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.bg-glow-bottom {
-  position: absolute;
-  width: 480px;
-  height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    var(--color-honey-glow) 0%,
-    transparent 70%
-  );
-  bottom: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-/* Subtle film-grain noise overlay */
-.bg-noise {
-  position: absolute;
-  inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  pointer-events: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

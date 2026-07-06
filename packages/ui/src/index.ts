@@ -36,7 +36,6 @@ export { FlightPath } from "./flight-path";
 export type { FlightPathProps } from "./flight-path";
 
 // ── Surfaces & chrome ──
-export { WaterRippleBg } from "./water-ripple-bg";
 export { GlassPanel } from "./glass-panel";
 export { SiteNavbar } from "./site-navbar";
 export { PageShell } from "./page-shell";

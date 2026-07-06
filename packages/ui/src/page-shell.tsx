@@ -2,10 +2,9 @@
 
 import { ReactNode } from "react";
 import { cssVar } from "./tokens";
-import { WaterRippleBg } from "./water-ripple-bg";
 
 /* ─────────────────────────────────────────
-   Page layout wrapper: ripple bg + content
+   Page layout wrapper: base surface + content
 ───────────────────────────────────────── */
 export function PageShell({ children }: { children: ReactNode }) {
   return (
@@ -16,7 +15,6 @@ export function PageShell({ children }: { children: ReactNode }) {
         position: "relative",
       }}
     >
-      <WaterRippleBg />
       <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
     </div>
   );
