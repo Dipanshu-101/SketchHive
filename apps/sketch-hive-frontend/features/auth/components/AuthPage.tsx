@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Mail, Lock, User } from "lucide-react";
 import { BeeMark } from "@repo/icons";
-import { Input, Button } from "@repo/ui";
+import { Input, Button, FlightPath } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { FloatingBee } from "@/features/marketing/components";
 import { signin, signup } from "@/features/auth/services/auth.service";
@@ -68,31 +68,22 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
       transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.9 }}
       style={{ position: "relative", width: "100%", maxWidth: 440 }}
     >
-      {/* ── Flanking bees — anchored to the card's corners, orbiting subtly.
-          Reuses the landing FloatingBee (idle float + rotate + dashed trail);
-          an outer slow motion loop nudges each around its corner. Both are
-          pointer-events:none and sit outside the card bounds, so they never
-          overlap the form fields. Hidden on small screens where there's no room
-          beside the card. ── */}
-      {/* Bee art faces RIGHT by default (see landing Hero). To face inward
-          toward the card center: the top-left bee stays unflipped (faces
-          right/inward); the bottom-right bee is flipped (faces left/inward). */}
+      {/* ── A single bee at the card's bottom-right, orbiting subtly. Reuses the
+          landing FloatingBee (idle float + rotate + dashed trail) with an outer
+          slow motion loop. pointer-events:none + high z-index so it paints over
+          the card without ever intercepting form interaction. Hidden on small
+          screens where there's no room beside the card.
+          Bee art faces RIGHT by default (see landing Hero); flipped here so it
+          faces left/inward toward the card center. The taller signup card sits
+          lower, so lift the bee a touch there to keep it inside the frame. ── */}
       <FlankBee
         variant="lens"
-        size={92}
-        corner="top-left"
-        delay={0}
-        loopDuration={13}
-        reduce={reduce ?? false}
-        className="auth-bee auth-bee-tl"
-      />
-      <FlankBee
-        variant="chat"
         size={78}
         corner="bottom-right"
         delay={1.1}
         loopDuration={16}
         flip
+        liftBy={isSignin ? 0 : 15}
         reduce={reduce ?? false}
         className="auth-bee auth-bee-br"
       />
@@ -277,6 +268,7 @@ function FlankBee({
   delay,
   loopDuration,
   flip,
+  liftBy = 0,
   reduce,
   className,
 }: {
@@ -286,41 +278,82 @@ function FlankBee({
   delay: number;
   loopDuration: number;
   flip?: boolean;
+  /** Extra px pulled toward the vertical center (raises a bottom bee, lowers a
+   *  top bee) — used to keep the bee in frame on taller cards like signup. */
+  liftBy?: number;
   reduce: boolean;
   className?: string;
 }) {
-  // Position the wrapper just outside the card's corner so the bee (and its
-  // dashed trail) hover beside the card, never over the fields.
+  // Position the wrapper just outside the card's corner so the bee hovers
+  // beside the card, never over the fields. `liftBy` nudges it inward from
+  // whichever vertical edge it's anchored to.
+  const vEdge = -size * 0.55 + liftBy;
   const pos: Record<typeof corner, React.CSSProperties> = {
-    "top-left": { top: -size * 0.55, left: -size * 0.5 },
-    "top-right": { top: -size * 0.55, right: -size * 0.5 },
-    "bottom-left": { bottom: -size * 0.55, left: -size * 0.5 },
-    "bottom-right": { bottom: -size * 0.55, right: -size * 0.5 },
+    "top-left": { top: vEdge, left: -size * 0.5 },
+    "top-right": { top: vEdge, right: -size * 0.5 },
+    "bottom-left": { bottom: vEdge, left: -size * 0.5 },
+    "bottom-right": { bottom: vEdge, right: -size * 0.5 },
   };
 
-  // Small looping path — a gentle rounded drift, alternating sense so the two
-  // bees never move identically.
+  // Small looping path — a gentle rounded drift, alternating sense so bees
+  // never move identically.
   const orbit =
     corner === "top-left" || corner === "bottom-right"
       ? { x: [0, 10, 4, -6, 0], y: [0, -6, 4, -2, 0] }
       : { x: [0, -8, -3, 7, 0], y: [0, 5, -4, 2, 0] };
 
+  // The dashed flight path sits at the BOTTOM of the bee, at a low z-index so it
+  // renders BEHIND the card (card is z-index 1 in this stacking context) but
+  // ABOVE the page background. It's a static sibling of the animated bee, so the
+  // bee flies over its own trail. Mirror it with the bee when flipped.
+  const isRight = corner === "top-right" || corner === "bottom-right";
+  const vSide = corner.startsWith("top") ? "top" : "bottom";
+  // Offset the trail down toward the bee's foot: from the bee's anchored edge,
+  // push it ~55% of the bee height further into the card.
+  const pathVOffset = vEdge + size * 0.55;
+
   return (
-    <motion.div
-      aria-hidden="true"
-      className={className}
-      // High z-index so the bees paint ON TOP of the card; pointerEvents stays
-      // off so they never intercept clicks/typing on the form beneath them.
-      style={{ position: "absolute", ...pos[corner], zIndex: 50, pointerEvents: "none" }}
-      animate={reduce ? undefined : orbit}
-      transition={
-        reduce
-          ? undefined
-          : { duration: loopDuration, repeat: Infinity, ease: "easeInOut", delay }
-      }
-    >
-      <FloatingBee variant={variant} size={size} delay={delay} flip={flip} />
-    </motion.div>
+    <>
+      {/* Flight path — behind the card, above the background, at the bee's foot */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          [vSide]: pathVOffset,
+          [isRight ? "right" : "left"]: -size * 0.5,
+          zIndex: 0,
+          pointerEvents: "none",
+          transform: flip ? "scaleX(-1)" : undefined,
+          transformOrigin: "center",
+          opacity: 0.5,
+        }}
+      >
+        <FlightPath width={size * 1.7} height={size * 0.6} strokeWidth={2} />
+      </div>
+
+      {/* Bee — on top of the card; no built-in trail (we render our own above) */}
+      <motion.div
+        aria-hidden="true"
+        className={className}
+        // High z-index so the bee paints ON TOP of the card; pointerEvents stays
+        // off so it never intercepts clicks/typing on the form beneath it.
+        style={{ position: "absolute", ...pos[corner], zIndex: 50, pointerEvents: "none" }}
+        animate={reduce ? undefined : orbit}
+        transition={
+          reduce
+            ? undefined
+            : { duration: loopDuration, repeat: Infinity, ease: "easeInOut", delay }
+        }
+      >
+        <FloatingBee
+          variant={variant}
+          size={size}
+          delay={delay}
+          flip={flip}
+          showPath={false}
+        />
+      </motion.div>
+    </>
   );
 }
 
