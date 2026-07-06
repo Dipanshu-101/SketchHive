@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { token, cssVar } from "./tokens";
 
 export type InputType =
@@ -28,6 +28,12 @@ export interface InputProps {
    * the `onChange(value)` contract is unchanged. Ignored for other types.
    */
   revealToggle?: boolean;
+  /**
+   * Optional decorative icon rendered inside the field on the left (e.g. a mail
+   * or lock glyph). Purely presentational; it tints muted → honey on focus and
+   * pushes the text padding over so it never overlaps the value.
+   */
+  leftIcon?: ReactNode;
 }
 
 /* Minimal inline eye / eye-off glyphs (no icon dependency in @repo/ui). */
