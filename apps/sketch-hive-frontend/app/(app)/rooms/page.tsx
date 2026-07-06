@@ -1,13 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Users, Pencil } from "lucide-react";
 import { Button, Card, FlightPath, Input } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { FloatingBee } from "@/features/marketing/components";
-import { createRoom } from "@/features/rooms/services/rooms.service";
+import {
+  createRoom,
+  getRoomByCode,
+} from "@/features/rooms/services/rooms.service";
+import { isAuthenticated } from "@/lib/auth";
+
+/** Shown when an unauthenticated user tries to join or create a room. */
+const SIGN_IN_REQUIRED = "Please sign in first to join a room.";
 
 export default function RoomsPage() {
   const router = useRouter();
@@ -17,34 +25,71 @@ export default function RoomsPage() {
   const [loadingJoin, setLoadingJoin] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [error, setError] = useState("");
+  // When the block is caused by missing auth, offer a direct link to sign in.
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     const code = roomCode.trim();
     if (!code) {
       setError("Enter a room code first.");
+      setNeedsSignIn(false);
+      return;
+    }
+
+    // Client-side auth gate: without a JWT we make NO API/WebSocket request and
+    // keep the user on the page (§1). The backend still enforces auth on every
+    // room call, so this is purely fast UX feedback.
+    if (!isAuthenticated()) {
+      setError(SIGN_IN_REQUIRED);
+      setNeedsSignIn(true);
       return;
     }
 
     setError("");
+    setNeedsSignIn(false);
     setLoadingJoin(true);
-    router.push(`/canvas/${code}`);
+    try {
+      // Resolve the human room code (slug) to the numeric id the canvas uses.
+      const room = await getRoomByCode(code);
+      router.push(`/canvas/${room.id}`);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        setError("No room found with that code.");
+      } else if (status !== 401) {
+        // 401 is handled globally (redirect to sign-in) by the api-client.
+        setError("Could not join the room. Please try again.");
+      }
+      setLoadingJoin(false);
+    }
   };
 
   const handleCreateRoom = async () => {
     const name = roomName.trim();
     if (!name) {
       setError("Enter a room name first.");
+      setNeedsSignIn(false);
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      setError(SIGN_IN_REQUIRED);
+      setNeedsSignIn(true);
       return;
     }
 
     setError("");
+    setNeedsSignIn(false);
     setLoadingCreate(true);
     try {
       const { roomId } = await createRoom({ name });
       router.push(`/canvas/${roomId}`);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Could not create the room.");
-    } finally {
+      if (err?.response?.status !== 401) {
+        setError(
+          err?.response?.data?.message || "Could not create the room.",
+        );
+      }
       setLoadingCreate(false);
     }
   };
@@ -142,6 +187,21 @@ export default function RoomsPage() {
               }}
             >
               {error}
+              {needsSignIn && (
+                <>
+                  {" "}
+                  <Link
+                    href="/signin?returnTo=%2Frooms"
+                    style={{
+                      color: cssVar.color.honey500,
+                      fontWeight: 600,
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
             </div>
           )}
 

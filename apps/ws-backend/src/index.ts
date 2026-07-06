@@ -162,6 +162,12 @@ async function handleChatMessage(
   const roomId = Number(parsedData.roomId);
   if (isNaN(roomId)) return;
 
+  // Authorization: only members of the room may post to it. Mirrors the drawing
+  // ("chat") guard so no authenticated socket can inject messages into a room
+  // channel it hasn't joined.
+  const sender = users.find((x) => x.ws === senderWs);
+  if (!sender || !sender.rooms.includes(roomId)) return;
+
   const raw = typeof parsedData.message === "string" ? parsedData.message : "";
   const message = raw.trim();
   if (!message) return;
@@ -209,11 +215,18 @@ async function handleChatMessage(
   });
 }
 
+/**
+ * WebSocket close codes we use to signal WHY a connection was rejected, so the
+ * client can react (e.g. redirect to sign-in on an auth failure vs. retry on a
+ * transient issue). 1008 = "policy violation" per the WebSocket spec.
+ */
+const WS_CLOSE_UNAUTHORIZED = 1008;
+
 wss.on("connection", (ws, request) => {
   const url = request.url;
 
   if (!url) {
-    ws.close();
+    ws.close(WS_CLOSE_UNAUTHORIZED, "Missing connection URL");
     return;
   }
 
@@ -221,10 +234,12 @@ wss.on("connection", (ws, request) => {
   const queryParams = new URLSearchParams(query);
   const token = queryParams.get("token") || "";
 
+  // Authentication gate: the handshake token MUST verify to a real userId.
+  // Unauthenticated sockets are rejected here and never join any room channel.
   const userId = checkUser(token);
 
   if (!userId) {
-    ws.close();
+    ws.close(WS_CLOSE_UNAUTHORIZED, "Invalid or missing authentication token");
     return;
   }
 
@@ -285,6 +300,16 @@ wss.on("connection", (ws, request) => {
         const message: string = parsedData.message;
 
         if (isNaN(roomId)) {
+          return;
+        }
+
+        // Authorization: a socket may only draw into a room it has actually
+        // joined (via "join_room"). This prevents an authenticated user from
+        // persisting/broadcasting into arbitrary room channels they never
+        // entered. The client always joins before drawing, so legitimate flow
+        // is unaffected.
+        const sender = users.find((x) => x.ws === ws);
+        if (!sender || !sender.rooms.includes(roomId)) {
           return;
         }
 

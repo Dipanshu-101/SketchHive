@@ -11,6 +11,7 @@ import {
   MoveUpRight,
   Pencil,
   Redo2,
+  Share2,
   Square,
   Triangle,
   Type,
@@ -38,7 +39,18 @@ const TOOLS: Array<{ tool: Tool; icon: ReactNode; label: string }> = [
   { tool: Tool.Eraser, icon: <Eraser size={18} />, label: "Eraser" },
 ];
 
-export function Canvas({ roomId, socket }: { socket: WebSocket; roomId: string }) {
+export function Canvas({
+  roomId,
+  socket,
+  onShare,
+}: {
+  socket: WebSocket;
+  roomId: string;
+  /** Opens the Share Room dialog. Owned by the parent (RoomCanvas) so the modal
+   *  renders OUTSIDE the canvas's isolated stacking context and paints above the
+   *  chat panel. */
+  onShare: () => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>(Tool.Rectangle);
@@ -78,6 +90,7 @@ export function Canvas({ roomId, socket }: { socket: WebSocket; roomId: string }
         onSelectTool={setSelectedTool}
         onUndo={() => game?.undo()}
         onRedo={() => game?.redo()}
+        onShare={onShare}
       />
     </div>
   );
@@ -88,11 +101,13 @@ function Toolbar({
   onSelectTool,
   onUndo,
   onRedo,
+  onShare,
 }: {
   selectedTool: Tool;
   onSelectTool: (t: Tool) => void;
   onUndo: () => void;
   onRedo: () => void;
+  onShare: () => void;
 }) {
   return (
     <div
@@ -130,6 +145,13 @@ function Toolbar({
       <div style={{ width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
       <IconButton icon={<Undo2 size={18} />} title="Undo" activated={false} onClick={onUndo} />
       <IconButton icon={<Redo2 size={18} />} title="Redo" activated={false} onClick={onRedo} />
+      <div style={{ width: 1, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+      <IconButton
+        icon={<Share2 size={18} />}
+        title="Share Room"
+        activated={false}
+        onClick={onShare}
+      />
     </div>
   );
 }
