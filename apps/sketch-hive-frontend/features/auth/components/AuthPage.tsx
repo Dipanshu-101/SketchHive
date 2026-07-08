@@ -9,6 +9,7 @@ import { Input, Button, FlightPath } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
 import { FloatingBee } from "@/features/marketing/components";
 import { signin, signup } from "@/features/auth/services/auth.service";
+import { consumeReturnTo } from "@/lib/auth-guard";
 
 /* ─────────────────────────────────────────
    AuthPage — premium single-card auth surface (Phase 2.2).
@@ -47,7 +48,12 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     setError("");
     try {
       await signin({ email, password }); // persists the token internally
-      router.push("/rooms");
+      // Return the user to the room/page they were headed for (shared invite
+      // link flow), falling back to /rooms. Reads the `?returnTo=` query param
+      // and the sessionStorage copy written by the auth guard.
+      const params = new URLSearchParams(window.location.search);
+      const destination = consumeReturnTo(params.get("returnTo"), "/rooms");
+      router.push(destination);
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid credentials.");
     } finally {

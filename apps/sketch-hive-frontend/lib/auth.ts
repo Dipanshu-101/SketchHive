@@ -48,6 +48,25 @@ export function getLocalUserId(): string | null {
 }
 
 /**
+ * Strict authentication check — true only when a REAL token is persisted in
+ * localStorage and it structurally decodes to a `{ userId }` payload.
+ *
+ * Unlike getAuthToken(), this deliberately ignores the dev fallback token, so
+ * it reflects genuine sign-in state. This is a client-side UX gate only: the
+ * backend still verifies the JWT on every protected request (never trust the
+ * frontend). It does NOT verify the signature (impossible in the browser) or
+ * expiry — an expired/tampered token passes here but is rejected server-side,
+ * where the resulting 401 drives the redirect to sign-in.
+ */
+export function isAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = window.localStorage.getItem("token");
+  if (!stored) return false;
+  const payload = decodeJwtPayload(stored);
+  return typeof payload?.["userId"] === "string";
+}
+
+/**
  * The hardcoded dev token currently embedded in RoomCanvas. Centralized here so
  * there is ONE source of truth; when real auth lands, delete this constant and
  * getAuthToken() keeps working off localStorage.

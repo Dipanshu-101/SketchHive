@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Users, Pencil } from "lucide-react";
-import { Button, Card, FlightPath, Input, BeeMascot } from "@repo/ui";
+import { Button, Card, FlightPath, Input } from "@repo/ui";
 import { cssVar } from "@repo/ui/tokens";
-import { createRoom } from "@/features/rooms/services/rooms.service";
+import { FloatingBee } from "@/features/marketing/components";
+import {
+  createRoom,
+  getRoomById,
+} from "@/features/rooms/services/rooms.service";
+import { isAuthenticated } from "@/lib/auth";
+
+/** Shown when an unauthenticated user tries to join or create a room. */
+const SIGN_IN_REQUIRED = "Please sign in first to join a room.";
 
 export default function RoomsPage() {
   const router = useRouter();
@@ -16,34 +25,80 @@ export default function RoomsPage() {
   const [loadingJoin, setLoadingJoin] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [error, setError] = useState("");
+  // When the block is caused by missing auth, offer a direct link to sign in.
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     const code = roomCode.trim();
     if (!code) {
       setError("Enter a room code first.");
+      setNeedsSignIn(false);
+      return;
+    }
+
+    // Client-side auth gate: without a JWT we make NO API/WebSocket request and
+    // keep the user on the page (§1). The backend still enforces auth on every
+    // room call, so this is purely fast UX feedback.
+    if (!isAuthenticated()) {
+      setError(SIGN_IN_REQUIRED);
+      setNeedsSignIn(true);
+      return;
+    }
+
+    // The room code IS the room id (same value shown in the Share dialog and
+    // used in share links), so it must be numeric. Reject non-numeric input
+    // early without a wasted request.
+    if (!/^\d+$/.test(code)) {
+      setError("Room code must be a number.");
+      setNeedsSignIn(false);
       return;
     }
 
     setError("");
+    setNeedsSignIn(false);
     setLoadingJoin(true);
-    router.push(`/canvas/${code}`);
+    try {
+      // Confirm the room exists before navigating (graceful 404 handling).
+      const room = await getRoomById(code);
+      router.push(`/canvas/${room.id}`);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        setError("No room found with that code.");
+      } else if (status !== 401) {
+        // 401 is handled globally (redirect to sign-in) by the api-client.
+        setError("Could not join the room. Please try again.");
+      }
+      setLoadingJoin(false);
+    }
   };
 
   const handleCreateRoom = async () => {
     const name = roomName.trim();
     if (!name) {
       setError("Enter a room name first.");
+      setNeedsSignIn(false);
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      setError(SIGN_IN_REQUIRED);
+      setNeedsSignIn(true);
       return;
     }
 
     setError("");
+    setNeedsSignIn(false);
     setLoadingCreate(true);
     try {
       const { roomId } = await createRoom({ name });
       router.push(`/canvas/${roomId}`);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Could not create the room.");
-    } finally {
+      if (err?.response?.status !== 401) {
+        setError(
+          err?.response?.data?.message || "Could not create the room.",
+        );
+      }
       setLoadingCreate(false);
     }
   };
@@ -68,10 +123,12 @@ export default function RoomsPage() {
         style={{ position: "relative", width: "100%", maxWidth: 440 }}
       >
         <FlankBee
+          variant="lens"
           size={78}
           corner="bottom-right"
           delay={1.1}
           loopDuration={16}
+          flip
           liftBy={12}
           reduce={reduce ?? false}
         />
@@ -139,6 +196,21 @@ export default function RoomsPage() {
               }}
             >
               {error}
+              {needsSignIn && (
+                <>
+                  {" "}
+                  <Link
+                    href="/signin?returnTo=%2Frooms"
+                    style={{
+                      color: cssVar.color.honey500,
+                      fontWeight: 600,
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
@@ -192,26 +264,42 @@ export default function RoomsPage() {
   );
 }
 
+/* ─────────────────────────────────────────
+   FlankBee — a landing FloatingBee anchored to the card's bottom-right corner,
+   with an extra slow orbit loop so it drifts gently around that corner. Matches
+   the (auth) sign-in/sign-up bee: a lens-carrying bee, flipped to face inward
+   toward the card, with its own dashed flight-path trail behind the card.
+   Purely decorative; pointer-events are off via FloatingBee itself.
+───────────────────────────────────────── */
 function FlankBee({
+  variant,
   size,
   corner,
   delay,
   loopDuration,
+  flip,
   liftBy = 0,
   reduce,
 }: {
+  variant: string;
   size: number;
   corner: "bottom-right";
   delay: number;
   loopDuration: number;
+  flip?: boolean;
   liftBy?: number;
   reduce: boolean;
 }) {
+  // Anchor the wrapper just outside the card's bottom-right corner; `liftBy`
+  // nudges it inward from the bottom edge to keep it in frame.
   const vEdge = -size * 0.55 + liftBy;
+  // Push the trail down toward the bee's foot, ~55% of the bee height inward.
   const pathVOffset = vEdge + size * 0.55;
 
   return (
     <>
+      {/* Flight path — behind the card, above the background, at the bee's foot.
+          Mirror it with the bee when flipped. */}
       <div
         aria-hidden="true"
         style={{
@@ -220,12 +308,15 @@ function FlankBee({
           right: -size * 0.5,
           zIndex: 0,
           pointerEvents: "none",
+          transform: flip ? "scaleX(-1)" : undefined,
+          transformOrigin: "center",
           opacity: 0.5,
         }}
       >
         <FlightPath width={size * 1.7} height={size * 0.6} strokeWidth={2} />
       </div>
 
+      {/* Bee — on top of the card; no built-in trail (we render our own above) */}
       <motion.div
         aria-hidden="true"
         style={{
@@ -242,7 +333,13 @@ function FlankBee({
             : { duration: loopDuration, repeat: Infinity, ease: "easeInOut", delay }
         }
       >
-        <BeeMascot size={size} float={false} carry={null} />
+        <FloatingBee
+          variant={variant}
+          size={size}
+          delay={delay}
+          flip={flip}
+          showPath={false}
+        />
       </motion.div>
     </>
   );
