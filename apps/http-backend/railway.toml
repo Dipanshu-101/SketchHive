@@ -14,7 +14,7 @@
 
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm turbo run build --filter=http-backend"
+buildCommand = "pnpm install --prod=false && pnpm turbo run build --filter=http-backend"
 
 [deploy]
 startCommand = "pnpm --filter http-backend start"
