@@ -13,13 +13,19 @@
 # `turbo` binary isn't guaranteed to be on PATH during Railway's build step
 # (which caused "Command \"turbo\" not found"). pnpm is always available.
 #
+# `pnpm install --prod=false` is REQUIRED: the service has NODE_ENV=production,
+# and pnpm skips devDependencies in production mode. But `tsc` / `prisma` live in
+# devDependencies and are needed to BUILD, so we force a full install first
+# (otherwise the build fails with "tsc: not found"). Runtime deps are what ship;
+# devDeps are only used during this build step.
+#
 # Required service variables: DATABASE_URL, JWT_SECRET, NODE_ENV=production
 # (PORT is provided automatically by Railway. WSS/TLS is terminated at Railway's
 #  edge, so the process itself listens with plain ws.)
 
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm --filter ws-backend... run build"
+buildCommand = "pnpm install --prod=false && pnpm --filter ws-backend... run build"
 
 [deploy]
 startCommand = "pnpm --filter ws-backend start"
