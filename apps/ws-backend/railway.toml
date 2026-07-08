@@ -1,0 +1,22 @@
+# Railway config for the WebSocket backend service.
+#
+# In the Railway service settings, set:
+#   - Root Directory        : /            (the monorepo root — pnpm workspace lives here)
+#   - Config-as-code path    : apps/ws-backend/railway.toml
+#
+# Railway/Nixpacks auto-detects pnpm and runs `pnpm install` at the root. The
+# build below builds ONLY this service and its internal dependencies
+# (@repo/db, @repo/backend-common) via Turbo, including `prisma generate`.
+#
+# Required service variables: DATABASE_URL, JWT_SECRET, NODE_ENV=production
+# (PORT is provided automatically by Railway. WSS/TLS is terminated at Railway's
+#  edge, so the process itself listens with plain ws.)
+
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm turbo run build --filter=ws-backend"
+
+[deploy]
+startCommand = "pnpm --filter ws-backend start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5

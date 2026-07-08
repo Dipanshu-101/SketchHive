@@ -11,7 +11,8 @@
     "build": "tsc -b"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20"
   },
   "keywords": [],
   "author": "",

@@ -5,7 +5,14 @@ import { getPrismaClient } from "@repo/db/client";
 
 const prisma = getPrismaClient();
 
-const wss = new WebSocketServer({ port: 8080 });
+// Railway injects the port to bind via PORT; fall back to 8080 locally. The ws
+// server binds 0.0.0.0 by default, so the container is externally reachable. TLS
+// (wss://) is terminated at Railway's edge, so the process speaks plain ws.
+const PORT = Number(process.env.PORT) || 8080;
+
+const wss = new WebSocketServer({ port: PORT });
+
+console.log(`WebSocket backend listening on port ${PORT}`);
 
 interface User {
   ws: WebSocket;

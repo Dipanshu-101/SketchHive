@@ -1,0 +1,22 @@
+# Railway config for the HTTP backend service.
+#
+# In the Railway service settings, set:
+#   - Root Directory        : /            (the monorepo root — pnpm workspace lives here)
+#   - Config-as-code path    : apps/http-backend/railway.toml
+#
+# Railway/Nixpacks auto-detects pnpm and runs `pnpm install` at the root, which
+# installs the whole workspace. The build below then builds ONLY this service and
+# its internal dependencies (@repo/db, @repo/backend-common, @repo/zod-validation)
+# via Turbo, including `prisma generate` (run inside @repo/db's build).
+#
+# Required service variables: DATABASE_URL, JWT_SECRET, FRONTEND_URL, NODE_ENV=production
+# (PORT is provided automatically by Railway.)
+
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm turbo run build --filter=http-backend"
+
+[deploy]
+startCommand = "pnpm --filter http-backend start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5

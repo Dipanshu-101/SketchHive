@@ -4,28 +4,27 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-console.log("PrismaClient =", PrismaClient);
-
+// In hosted environments (Railway, Vercel) DATABASE_URL is injected directly
+// into process.env. For local development we additionally load the package-local
+// .env file. dotenv does NOT override variables that are already set, so the
+// platform-injected value always wins in production.
+//
+// After compilation __dirname is `dist/`, so `../.env` resolves to the package
+// root — the same place the .env lives during development.
 const envPath = path.resolve(__dirname, "../.env");
-console.log("[db package] loading .env from", envPath);
-
 dotenv.config({ path: envPath });
 
 const databaseUrl = process.env.DATABASE_URL;
 
-console.log(
-  "[db package] DATABASE_URL present:",
-  Boolean(databaseUrl)
-);
-
 if (!databaseUrl) {
   throw new Error(
-    "DATABASE_URL is required for Prisma client initialization"
+    "DATABASE_URL is not set. Configure it in the environment (Railway service " +
+      "variables) or in packages/db/.env for local development."
   );
 }
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   // node-postgres does not understand libpq's `sslmode=verify-full` /
   // `channel_binding` URL params, so configure TLS explicitly.
   ssl: { rejectUnauthorized: true },
@@ -37,13 +36,9 @@ let prismaClient: PrismaClient | null = null;
 
 export function getPrismaClient() {
   if (!prismaClient) {
-    console.log("[db package] initializing PrismaClient");
-
     prismaClient = new PrismaClient({
       adapter,
     });
-
-    console.log("[db package] PrismaClient initialized successfully");
   }
 
   return prismaClient;
