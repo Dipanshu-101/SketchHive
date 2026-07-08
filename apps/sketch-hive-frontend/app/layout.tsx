@@ -16,12 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SketchHive",
   description: "Collaborative whiteboard for teams",
-  // Tab/favicon icon. Points at the app logo in /public so it overrides the
-  // default Next.js favicon. SVG scales crisply at any tab size.
+  // Tab/favicon icon. Uses favicon.svg — a zoomed (125%) copy of the app logo so
+  // the mascot fills more of the tab icon. The on-page logo still uses logo.svg.
   icons: {
-    icon: "/mascot/logo.svg",
-    shortcut: "/mascot/logo.svg",
-    apple: "/mascot/logo.svg",
+    icon: "/mascot/favicon.svg",
+    shortcut: "/mascot/favicon.svg",
+    apple: "/mascot/favicon.svg",
   },
 };
 
